@@ -1,0 +1,282 @@
+// ndigo6g12_averager_example.cpp : Example application for the Ndigo6G-Averager
+//
+#include "ndigo6g12_interface.h"
+#include "stdlib.h"
+
+#include <stdio.h>
+#include <tchar.h>
+#include <windows.h>
+
+ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
+                                      int card_index) {
+    // prepare initialization
+    ndigo6g12_init_parameters params;
+    // fill initialization data structure with default values
+    // so that the data is valid and only parameters
+    // of interest have to be set explicitly
+    ndigo6g12_get_default_init_parameters(&params);
+
+    params.buffer_size[0] = buffer_size; // size of the packet buffer
+    params.board_id = board_id; // value copied to "card" field of every packet,
+                                // allowed range 0..255
+    params.card_index = card_index; // which of the Ndigo6G-Averager board found
+                                    // in the system to be used
+
+    params.application_type = 5;
+    // initialize card
+    int error_code;
+    const char *error_message;
+    ndigo6g12_device device;
+    error_code = ndigo6g12_init(&device, &params, &error_message);
+    if (error_code != CRONO_OK) {
+        printf("Could not init Ndigo6G-Averager: %s\n", error_message);
+        ndigo6g12_close(&device);
+        exit(1);
+    }
+
+    return device;
+}
+
+int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
+    // prepare configuration
+    ndigo6g12_configuration config;
+
+    // fill configuration data structure with default values
+    // so that the configuration is valid and only parameters
+    // of interest have to be set explicitly
+    if (CRONO_OK != ndigo6g12_get_default_configuration(device, &config)) {
+        printf("Could not configure Ndigo6G-Averager: %s\n",
+               ndigo6g12_get_last_error_message(device));
+        ndigo6g12_close(device);
+        return (1);
+    }
+
+    // configuration for the ADC channel
+
+    // single channel mode with 6.4 Gsps
+    config.adc_mode = NDIGO6G12_ADC_MODE_A;
+
+    // ADC sample value range -32768 .. 32767
+    // averating data saturates at +/- 2^21 - 1
+    config.output_mode = NDIGO6G12_OUTPUT_MODE_SIGNED32;
+
+    // enable ADC channel A and trigger on the falling edge
+    // shift baseline of analog inputs to +350 mV
+    config.analog_offsets[0] = NDIGO6G12_DC_OFFSET_N_NIM * -1;
+
+    // set trigger level on FPGA0 input to -350 mV
+    config.tdc_trigger_offsets[4] = NDIGO6G12_DC_OFFSET_N_NIM;
+
+    // trigger on falling edge of FPGA0 input
+    config.trigger[NDIGO6G12_TRIGGER_FPGA0].edge = true;
+    config.trigger[NDIGO6G12_TRIGGER_FPGA0].rising = false;
+
+    // enable channel
+    config.trigger_block[0].enabled = true;
+    config.trigger_block[0].length =
+        32764; // multiples of 32 ADC samples (5 ns recording time)
+
+    // select FPGA0 as trigger source of the channel
+    config.trigger_block[0].sources = NDIGO6G12_TRIGGER_SOURCE_FPGA0;
+
+    // configuration of the Averaging features
+
+    // number of events that are averaged
+    config.average_configuration.iterations = averaging_count;
+
+    // saturate averaging data instead of overflow
+    config.average_configuration.use_saturation = true;
+
+    // don't stop averaging if next iteration could lead to sample data overflow
+    config.average_configuration.stop_on_overflow = false;
+
+    // write configuration to board
+    int error_code = ndigo6g12_configure(device, &config);
+
+    if (error_code != CRONO_OK) {
+        printf("Could not configure Ndigo6G-Averager: %s\n",
+               ndigo6g12_get_last_error_message(device));
+        return (1);
+    }
+    return 0;
+}
+
+// print some basic information about the Ndigo6G-Averager device
+void print_device_information(ndigo6g12_device *device) {
+    ndigo6g12_static_info si;
+    ndigo6g12_get_static_info(device, &si);
+    printf("Firmware revision %d.%d - Type %d\r\n", si.fw_revision,
+           si.svn_revision, si.application_type);
+    printf("Firmware Bitstream Timestamp : %s\r\n", si.bitstream_date);
+    printf("Calibration date             : %s\r\n", si.calibration_date);
+    printf("Board serial                 : %d.%d\r\n", si.board_serial >> 24,
+           si.board_serial & 0xffffff);
+    printf("Board revision               : %d\r\n", si.board_revision);
+    printf("Board configuration          : %d\r\n", si.board_configuration);
+    printf("Driver Revision              : %d.%d.%d\n",
+           ((si.driver_revision >> 16) & 255),
+           ((si.driver_revision >> 8) & 255), (si.driver_revision & 255));
+    printf("Driver Build Revision        : %d\n", si.driver_build_revision);
+
+    ndigo6g12_fast_info fi;
+    ndigo6g12_get_fast_info(device, &fi);
+    printf("TDC temperature              : %.2f C\r\n", fi.tdc1_temp);
+    printf("ADC temperature              : %.2f C\r\n", fi.ev12_temp);
+    printf("FPGA temperature             : %.2f C\r\n", fi.fpga_temperature);
+    printf("PCIe link speed              : %d\r\n", fi.pcie_link_speed);
+    printf("PCIe link width              : %d\r\n", fi.pcie_link_width);
+    printf("PCIe payload                 : %d\r\n", fi.pcie_max_payload);
+
+    ndigo6g12_param_info pi;
+    ndigo6g12_get_param_info(device, &pi);
+    printf("Sample rate                  : %.0f Msps\r\n",
+           pi.sample_rate / 1000000.0);
+    printf("Resolution                   : %d Bit\r\n", pi.resolution);
+    printf("Sample period                : %.2f ps\r\n", pi.sample_period);
+    printf("TDC bin size                 : %.2f ps\r\n", pi.tdc_period);
+    printf("Packet Timestamp period      : %.2f ps\r\n", pi.packet_ts_period);
+    printf("ADC Sample delay             : %.2f ps\r\n", pi.adc_sample_delay);
+}
+
+int ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
+    // calculate packet timestamp in picoseconds
+    // not adjusted for ADC data precursor
+    double packet_ts = pkt->timestamp * pi->packet_ts_period;
+
+    printf("ADC packet - TS: %.3f ns\r\n", (packet_ts / 1000.0));
+
+    // packet length is number of 64 bit words of data
+    // the first two 64 bit packet data words are additional header information
+    // only the first currently carries valid information
+    uint64_t averaging_header0 = *(pkt->data);
+
+    // if bit is set less than the requested number of iterations have been
+    // performed before writing the packet due to possible data overflow on the
+    // next iteration
+    bool stopped_due_to_overflow = (averaging_header0 >> 32) & 0x1;
+
+    // if bit is set the averaged data contains saturated or overflowed samples
+    // does NOT indicate that the input signal has not exceeded the ADC range
+    bool averaging_overflow = (averaging_header0 >> 32) & 0x2;
+
+    // number of iterations skipped due to possible data overflow
+    int iterations_skipped = (averaging_header0 & 0xffffff);
+
+    // 2 averaged ADC samples are stored in each 64 bit chunk of packet data
+    uint32_t data_offset = 2;
+    uint32_t sample_count = ((pkt->length - data_offset) * 2);
+
+    // ADC data is a signed 32 bit integer
+    int32_t *adc_data = (int32_t *)(pkt->data + data_offset);
+
+    // find first falling edge in Averaging data
+    for (uint32_t i = 0; i < (sample_count - 1); i++) {
+        if ((adc_data[i] >= 0) && (adc_data[i + 1] < 0)) {
+            // calculate threshold crossing relative to start of packet
+            double fe_offset = i;
+            // linear interpolation of trigger threshold crossing
+            fe_offset +=
+                (double)(adc_data[i] - 0) / (adc_data[i] - adc_data[i + 1]);
+            // convert to picoseconds
+            fe_offset *= pi->sample_period;
+
+            // calculate timestamp of threshold crossing in picoseconds
+            double falling_edge_ts = packet_ts + fe_offset;
+
+            printf("ADC packet falling edge event - TS: %.3f ns - Offset to "
+                   "packet start: %.3f ns\r\n",
+                   (falling_edge_ts / 1000.0), (fe_offset / 1000.0));
+            break;
+        }
+    }
+    printf("\n");
+    return 0;
+}
+
+int main(int argc, char *argv[]) {
+    // use 32 MB to buffer incoming data
+    const int64_t BUFFER_SIZE = 32 * 1024 * 1024;
+
+    // use first Ndigo6G-Averager device found in the system
+    const int CARD_INDEX = 0;
+
+    // set board id in all packets to 0
+    // can be used to distinguish packets of multiple devices
+    const int BOARD_ID = 0;
+
+    printf("cronologic ndigo6g12_averager_example using driver: %s\n",
+           ndigo6g12_get_driver_revision_str());
+
+    // create and initialize the device
+    // may fail if the device is already in use by an other process
+    // or the device driver is not installed
+    ndigo6g12_device device =
+        initialize_ndigo6g12(BUFFER_SIZE, BOARD_ID, CARD_INDEX);
+
+    print_device_information(&device);
+
+    // set the configuration required for capturing data
+    int averaging_count = 16;
+    int status = configure_ndigo6g12(&device, averaging_count);
+
+    // configure readout behaviour
+    // automatically acknowledge all data as processed
+    // on the next call to ndigo6g12_read()
+    // old packet pointers are invalid after calling ndigo6g12_read()
+    ndigo6g12_read_in read_config;
+    read_config.acknowledge_last_read = 1;
+
+    // structure with packet pointers for read data
+    ndigo6g12_read_out read_data;
+
+    // start data capture
+    status = ndigo6g12_start_capture(&device);
+    if (status != CRONO_OK) {
+        printf("Could not start capturing: %s",
+               ndigo6g12_get_last_error_message(&device));
+        ndigo6g12_close(&device);
+        return status;
+    }
+
+    // get current sample rate to calculate event timestamps
+    ndigo6g12_param_info param_info;
+    ndigo6g12_get_param_info(&device, &param_info);
+
+    // some book keeping
+    // Averaging data is provided in a single packet
+    int packet_count = 0;
+
+    printf("\nReading packets:\n");
+
+    const int PACKET_COUNT = 10;
+    while ((packet_count < PACKET_COUNT)) {
+        // get pointers to acquired packets
+        status = ndigo6g12_read(&device, &read_config, &read_data);
+        if (status != CRONO_OK) {
+            Sleep(200);
+            printf(" - No data! -\n");
+        } else {
+            // iterate over all packets received with the last read
+            volatile crono_packet *p = read_data.first_packet;
+            while (p <= read_data.last_packet) {
+                if (p->channel == 0) {
+                    // packets with channel number 0 are Averaging data
+                    ProcessADCPacket(p, &param_info);
+                }
+
+                // go to next packet
+                p = crono_next_packet(p);
+
+                packet_count++;
+            } // end: iterate over received packets
+        }     // end: Got any packets?
+    }         // end: while
+
+    // shut down packet generation and DMA transfers
+    ndigo6g12_stop_capture(&device);
+
+    // deactivate Ndigo6G-Averager
+    ndigo6g12_close(&device);
+
+    return true;
+}
