@@ -1,6 +1,6 @@
 //
 // Header file containing structs and #defines specific for the Ndigo6G12
-// The current driver version for Ndigo6G12 devices is 1.4.1.0
+// The current driver version for Ndigo6G12 devices is 1.3.0.0
 //
 
 /*! \file
@@ -29,19 +29,23 @@ extern "C" {
 
 #define NDIGO6G12_API_VERSION 0
 
-#define NDIGO6G12_TRIGGER_COUNT                                                \
-    16 //!< ADC and TDC trigger including AUTO and ONE
-#define NDIGO6G12_ADC_CHANNEL_COUNT 4 //!< The number of analog input channels.
-#define NDIGO6G12_GATE_COUNT 4        //!< The number of gating blocks.
+//!< ADC and TDC trigger including AUTO and ONE
+#define NDIGO6G12_TRIGGER_COUNT 16
+//!< The number of analog input channels.
+#define NDIGO6G12_ADC_CHANNEL_COUNT 4
+//!< The number of gating blocks.
+#define NDIGO6G12_GATE_COUNT 4
 
-#define NDIGO6G12_TDC_CHANNEL_COUNT 4 //!< The number of THS TDC input channels
-#define NDIGO6G12_TDC_GATE_COUNT 4    //!< The number of THS TDC gates
-#define NDIGO6G12_TDC_TIGER_COUNT                                              \
-    4 //!< The number of timing generator blocks for the THS inputs.
-#define NDIGO6G12_FPGA_TDC_CHANNEL_COUNT                                       \
-    2 //!< The number of FPGA TDC input channels
-#define NDIGO6G12_FPGA_TDC_TIGER_COUNT                                         \
-    2 //!< The number of timing generator blocks for the FPGA TDC inputs.
+//!< The number of TDC input channels
+#define NDIGO6G12_TDC_CHANNEL_COUNT 4
+//!< The number of TDC gates
+#define NDIGO6G12_TDC_GATE_COUNT 4
+//!< The number of timing generator blocks for the TDC inputs.
+#define NDIGO6G12_TDC_TIGER_COUNT 4
+//!< The number of FPGA TDC input channels
+#define NDIGO6G12_FPGA_TDC_CHANNEL_COUNT 2
+//!< The number of timing generator blocks for the FPGA TDC inputs.
+#define NDIGO6G12_FPGA_TDC_TIGER_COUNT 2
 
 /*! \ingroup adcdefs
  * \brief 4 channel mode at sample rate 1600 Msps
@@ -91,15 +95,15 @@ extern "C" {
  * Return output in the range -32768 to 32767
  */
 #define NDIGO6G12_OUTPUT_MODE_SIGNED16 1
-#define NDIGO6G12_OUTPUT_MODE_SIGNED16 1
 /*! \ingroup outputdefs
- *	\brief Output in signed16 integer format.
+ *	\brief Output in signed32 integer format.
+ * Only applicable for averaging mode.
  *
  * Return output in the range -(2^31) to 2^31 - 1
  */
 #define NDIGO6G12_OUTPUT_MODE_SIGNED32 2
 
-/*! \ingroup	gatedefs
+/*! \ingroup gatedefs
  * Bitmask for configuration of gates
  */
 #define NDIGO6G12_TRIGGER_GATE_NONE 0x0000
@@ -108,8 +112,8 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_GATE_2 0x0004
 #define NDIGO6G12_TRIGGER_GATE_3 0x0008
 
-// Bit definitions for trigger sources used in timing generator and gating
-// configuration all sources disabled
+// Bit definitions for trigger sources used in timing generator
+// and gating configuration all sources disabled
 #define NDIGO6G12_TRIGGER_SOURCE_NONE 0x00000000
 // trigger source is ADC input A0, A1, ..., D1
 #define NDIGO6G12_TRIGGER_SOURCE_A0 0x00000001
@@ -125,7 +129,7 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_SOURCE_TDC1 0x00000200
 #define NDIGO6G12_TRIGGER_SOURCE_TDC2 0x00000400
 #define NDIGO6G12_TRIGGER_SOURCE_TDC3 0x00000800
-// trigger source is input FPGA1, FPGA2
+// trigger source is input FPGA0, FPGA1
 #define NDIGO6G12_TRIGGER_SOURCE_FPGA0 0x00001000
 #define NDIGO6G12_TRIGGER_SOURCE_FPGA1 0x00002000
 // trigger source is autotrigger module
@@ -134,7 +138,7 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_SOURCE_ONE 0x00008000
 
 /*! \ingroup triggerdefs
- *  Bitmask for configuration of the Triggers
+ *  Index for configuration of the triggers
  */
 #define NDIGO6G12_TRIGGER_A0 0
 #define NDIGO6G12_TRIGGER_A1 1
@@ -152,6 +156,16 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_FPGA1 13
 #define NDIGO6G12_TRIGGER_AUTO 14
 #define NDIGO6G12_TRIGGER_ONE 15
+
+/*! \ingroup tigerdefs
+ *  Index for configuration of the TiGers
+ */
+#define NDIGO6G12_TIGER_TDC0 0
+#define NDIGO6G12_TIGER_TDC1 1
+#define NDIGO6G12_TIGER_TDC2 2
+#define NDIGO6G12_TIGER_TDC3 3
+#define NDIGO6G12_TIGER_FPGA0 4
+#define NDIGO6G12_TIGER_FPGA1 5
 
 /*! \ingroup defdcoffset
  *
@@ -184,7 +198,7 @@ typedef struct {
 } ndigo6g12_device;
 
 /*! \ingroup initparamsstruct
- *   \brief struct for the initialization of the ndigo6g12
+ *   \brief struct for the initialization of the Ndigo6G12
  *
  *   this structure MUST be completely INITIALIZED
  */
@@ -197,7 +211,7 @@ typedef struct {
      *   must be set to @link apiversion NDIGO6G12_API_VERSION @endlink
      */
     int version;
-    /*! \brief The index in the list of ndigo6g12 boards that should be
+    /*! \brief The index in the list of Ndigo6G12 boards that should be
      * initialized.
      *
      *   There might be multiple boards in the system that are handled by this
@@ -219,8 +233,8 @@ typedef struct {
     int board_id;
     /*! \brief The minimum size of the DMA buffer.
      *
-     *   If set to 0 the default size of 16MB is used.
-     *   For the ndigo6g12 only the first entry is used.
+     *   If set to 0 the default size of 64 MiBytes is used.
+     *   For the Ndigo6G12 only the first entry is used.
      */
     int64_t buffer_size[8];
     /*! \brief The update delay of the writing pointer after a packet has been
@@ -244,7 +258,7 @@ typedef struct {
     int led_flashing_mode;
 
     /*!
-     * Mask with a set bit for each enabled ADC channel.
+     * Mask with a bit set for each enabled ADC channel.
      * Default: all channels enabled. Do not change.
      */
     int adc_channel_mask;
@@ -275,7 +289,7 @@ typedef struct {
     crono_bool_t adc_full_swing;
 
     /*!
-     * Select four, two or one channel or averaging mode.
+     * Select four, two or one channel, or averaging mode.
      * 0: use currently installed type
      * 1: one ADC channel @6.4 Gsps
      * 2: two ADC channels @3.2 Gsps
@@ -295,7 +309,9 @@ typedef struct {
     int partial_bitstream_size;
 
     /*!
-     * Pointer to buffer with partial bitstream data.
+     * Pointer to buffer with partial bitstream data. Can be nullptr if
+     * application_type matches application_type of currently installed
+     * firmware.
      */
     uint32_t *partial_bitstream;
 } ndigo6g12_init_parameters;
@@ -327,7 +343,7 @@ typedef struct {
     double bandwidth;
 
     /*! \brief ADC sample resolution
-     *   depending on output mode 12 or 16 bit
+     *   always 12 bit
      */
     int resolution;
 
@@ -359,7 +375,7 @@ typedef struct {
      */
     uint32_t tdc_rollover_period;
 
-    /*! \brief The delay of the ADC sample due to pipelining in picoseconds
+    /*! \brief The delay of the ADC samples due to pipelining in picoseconds
      */
     double adc_sample_delay;
 
@@ -799,11 +815,11 @@ typedef struct {
      * of -32768 and +32768.
      *
      * For trigger indices @link triggerdefs NDIGO6G12_TRIGGER_TDC @endlink to
-     * @link triggerdefs NDIGO6G12_TRIGGER_BUS3_PE @endlink the threshold is
+     * @link triggerdefs NDIGO6G12_TRIGGER_ONE @endlink the threshold is
      * ignored.
      *
      *  Valid values depend on output mode:
-     *  - @link outputdefs NDIGO6G12_OUTPUT_MODE_RAW @endlink : -2048 to 2047
+     *  - @link outputdefs NDIGO6G12_OUTPUT_MODE_RAW @endlink : 0 to 4096
      *  - @link outputdefs NDIGO6G12_OUTPUT_MODE_SIGNED16 @endlink : -32768 to
      * 32767
      */
@@ -816,9 +832,7 @@ typedef struct {
      *       - 1: edge trigger
      *
      * For trigger indices @link triggerdefs NDIGO6G12_TRIGGER_AUTO @endlink and
-     * @link triggerdefs NDIGO6G12_TRIGGER_ONE @endlink this is ignored For
-     * trigger indices @link triggerdefs NDIGO6G12_TRIGGER_TDC_PE @endlink to
-     * @link triggerdefs NDIGO6G12_TRIGGER_BUS3_PE @endlink this must be set.
+     * @link triggerdefs NDIGO6G12_TRIGGER_ONE @endlink this is ignored.
      *
      * The edge trigger triggers as soon as its set threshold is crossed by the
      * signal. Thus the roots in reference to the threshold are recorded. The
@@ -838,9 +852,7 @@ typedef struct {
      * 1 - triggers parts of the signal below the threshold
      *
      * For trigger indices @link triggerdefs NDIGO6G12_TRIGGER_AUTO @endlink and
-     * @link triggerdefs NDIGO6G12_TRIGGER_ONE @endlink this is ignored For
-     * trigger indices @link triggerdefs NDIGO6G12_TRIGGER_TDC_PE @endlink to
-     * @link triggerdefs NDIGO6G12_TRIGGER_BUS3_PE @endlink this must be set.
+     * @link triggerdefs NDIGO6G12_TRIGGER_ONE @endlink this is ignored.
      */
     crono_bool_t rising;
 
@@ -966,7 +978,7 @@ typedef struct {
 typedef struct {
     /*! \brief Set the number of trigger events that are averaged
      *
-     *    Must be 0 if no averaging application is installed on the ndigo6g12.
+     *    Must be 0 if no averaging application is installed on the Ndigo6G12.
      *
      */
     int iterations;
@@ -1003,7 +1015,7 @@ typedef struct {
 
     /*! \brief Set the number microseconds until timeout
      *
-     *    Must be 0 if no averaging application is installed on the ndigo6g12.
+     *    Must be 0 if no averaging application is installed on the Ndigo6G12.
      *
      */
     int timeout_threshold;
@@ -1326,7 +1338,7 @@ NDIGO6G12_API int ndigo6g12_get_driver_revision();
  */
 NDIGO6G12_API const char *ndigo6g12_get_driver_revision_str();
 
-/*! Get the number of ndigo6g12 cards
+/*! Get the number of Ndigo6G12 cards
  */
 NDIGO6G12_API int ndigo6g12_count_devices(int *error_code,
                                           const char **error_message);
@@ -1398,7 +1410,7 @@ NDIGO6G12_API int ndigo6g12_close(ndigo6g12_device *device);
  *   \brief gets latest error message of the current device
  *
  *   Return values are listed @link defclose here @endlink.
- *   \param *device is type @link ndigo6g12_device ndigo6g12 device @endlink
+ *   \param *device is type @link ndigo6g12_device Ndigo6G12 device @endlink
  */
 NDIGO6G12_API const char *
 ndigo6g12_get_last_error_message(ndigo6g12_device *device);
@@ -1450,7 +1462,7 @@ NDIGO6G12_API int ndigo6g12_get_fast_info(ndigo6g12_device *device,
                                           ndigo6g12_fast_info *fast_info);
 
 /*! \ingroup runtime
- *   \brief write partial bitstream to ndigo6g12
+ *   \brief write partial bitstream to Ndigo6G12
  */
 NDIGO6G12_API int ndigo6g12_write_partial_bitstream(ndigo6g12_device *device,
                                                     uint32_t *buffer,
