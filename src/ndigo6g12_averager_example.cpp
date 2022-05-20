@@ -22,7 +22,6 @@ ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
     params.card_index = card_index; // which of the Ndigo6G-Averager board found
                                     // in the system to be used
 
-    params.application_type = 5;
     // initialize card
     int error_code;
     const char *error_message;
@@ -73,11 +72,20 @@ int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
 
     // enable channel
     config.trigger_block[0].enabled = true;
-    config.trigger_block[0].length =
-        32764; // multiples of 32 ADC samples (5 ns recording time)
+    // multiples of 32 ADC samples (5 ns recording time)
+    config.trigger_block[0].length = 32764;
 
     // select FPGA0 as trigger source of the channel
     config.trigger_block[0].sources = NDIGO6G12_TRIGGER_SOURCE_FPGA0;
+
+    // enable tiger output with autotrigger as source
+    config.tdc_configuration.tiger_block[NDIGO6G12_TIGER_FPGA0].sources =
+        NDIGO6G12_TRIGGER_SOURCE_AUTO;
+
+    // 1 kHz pulse interval
+    config.auto_trigger_period = 200000;
+    // disable random pulse interval
+    config.auto_trigger_random_exponent = 0;
 
     // configuration of the Averaging features
 
@@ -105,14 +113,14 @@ int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
 void print_device_information(ndigo6g12_device *device) {
     ndigo6g12_static_info si;
     ndigo6g12_get_static_info(device, &si);
-    printf("Firmware revision %d.%d - Type %d\r\n", si.fw_revision,
+    printf("Firmware revision %d.%d - Type %d\n", si.fw_revision,
            si.svn_revision, si.application_type);
-    printf("Firmware Bitstream Timestamp : %s\r\n", si.bitstream_date);
-    printf("Calibration date             : %s\r\n", si.calibration_date);
-    printf("Board serial                 : %d.%d\r\n", si.board_serial >> 24,
+    printf("Firmware Bitstream Timestamp : %s\n", si.bitstream_date);
+    printf("Calibration date             : %s\n", si.calibration_date);
+    printf("Board serial                 : %d.%d\n", si.board_serial >> 24,
            si.board_serial & 0xffffff);
-    printf("Board revision               : %d\r\n", si.board_revision);
-    printf("Board configuration          : %d\r\n", si.board_configuration);
+    printf("Board revision               : %d\n", si.board_revision);
+    printf("Board configuration          : %d\n", si.board_configuration);
     printf("Driver Revision              : %d.%d.%d\n",
            ((si.driver_revision >> 16) & 255),
            ((si.driver_revision >> 8) & 255), (si.driver_revision & 255));
@@ -120,30 +128,30 @@ void print_device_information(ndigo6g12_device *device) {
 
     ndigo6g12_fast_info fi;
     ndigo6g12_get_fast_info(device, &fi);
-    printf("TDC temperature              : %.2f C\r\n", fi.tdc1_temp);
-    printf("ADC temperature              : %.2f C\r\n", fi.ev12_temp);
-    printf("FPGA temperature             : %.2f C\r\n", fi.fpga_temperature);
-    printf("PCIe link speed              : %d\r\n", fi.pcie_link_speed);
-    printf("PCIe link width              : %d\r\n", fi.pcie_link_width);
-    printf("PCIe payload                 : %d\r\n", fi.pcie_max_payload);
+    printf("TDC temperature              : %.2f C\n", fi.tdc1_temp);
+    printf("ADC temperature              : %.2f C\n", fi.ev12_temp);
+    printf("FPGA temperature             : %.2f C\n", fi.fpga_temperature);
+    printf("PCIe link speed              : Gen. %d\n", fi.pcie_link_speed);
+    printf("PCIe link width              : %d lanes\n", fi.pcie_link_width);
+    printf("PCIe payload                 : %d bytes\n", fi.pcie_max_payload);
 
     ndigo6g12_param_info pi;
     ndigo6g12_get_param_info(device, &pi);
-    printf("Sample rate                  : %.0f Msps\r\n",
+    printf("Sample rate                  : %.0f Msps\n",
            pi.sample_rate / 1000000.0);
-    printf("Resolution                   : %d Bit\r\n", pi.resolution);
-    printf("Sample period                : %.2f ps\r\n", pi.sample_period);
-    printf("TDC bin size                 : %.2f ps\r\n", pi.tdc_period);
-    printf("Packet Timestamp period      : %.2f ps\r\n", pi.packet_ts_period);
-    printf("ADC Sample delay             : %.2f ps\r\n", pi.adc_sample_delay);
+    printf("Resolution                   : %d Bit\n", pi.resolution);
+    printf("Sample period                : %.2f ps\n", pi.sample_period);
+    printf("TDC bin size                 : %.2f ps\n", pi.tdc_period);
+    printf("Packet Timestamp period      : %.2f ps\n", pi.packet_ts_period);
+    printf("ADC Sample delay             : %.2f ps\n", pi.adc_sample_delay);
 }
 
-int ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
+double ProcessPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
     // calculate packet timestamp in picoseconds
     // not adjusted for ADC data precursor
     double packet_ts = pkt->timestamp * pi->packet_ts_period;
 
-    printf("ADC packet - TS: %.3f ns\r\n", (packet_ts / 1000.0));
+    printf("\nPacket - TS: %.3f ns\n", (packet_ts / 1000.0));
 
     // packet length is number of 64 bit words of data
     // the first two 64 bit packet data words are additional header information
@@ -177,25 +185,21 @@ int ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
             // linear interpolation of trigger threshold crossing
             fe_offset +=
                 (double)(adc_data[i] - 0) / (adc_data[i] - adc_data[i + 1]);
-            // convert to picoseconds
+            // calculate timestamp of threshold crossing in picoseconds
             fe_offset *= pi->sample_period;
 
-            // calculate timestamp of threshold crossing in picoseconds
-            double falling_edge_ts = packet_ts + fe_offset;
-
-            printf("ADC packet falling edge event - TS: %.3f ns - Offset to "
-                   "packet start: %.3f ns\r\n",
-                   (falling_edge_ts / 1000.0), (fe_offset / 1000.0));
+            printf("Falling edge event - offset to packet start: %.3f ns\n",
+                   (fe_offset / 1000.0));
             break;
         }
     }
-    printf("\n");
-    return 0;
+    return packet_ts;
 }
 
 int main(int argc, char *argv[]) {
-    // use 32 MB to buffer incoming data
-    const int64_t BUFFER_SIZE = 32 * 1024 * 1024;
+    // use 128 MiByte to buffer incoming data
+    // largest Averaging data packet has about 4 MiByte
+    const int64_t BUFFER_SIZE = 128 * 1024 * 1024;
 
     // use first Ndigo6G-Averager device found in the system
     const int CARD_INDEX = 0;
@@ -216,7 +220,7 @@ int main(int argc, char *argv[]) {
     print_device_information(&device);
 
     // set the configuration required for capturing data
-    int averaging_count = 16;
+    int averaging_count = 16; // average 16 trigger events
     int status = configure_ndigo6g12(&device, averaging_count);
 
     // configure readout behaviour
@@ -245,6 +249,7 @@ int main(int argc, char *argv[]) {
     // some book keeping
     // Averaging data is provided in a single packet
     int packet_count = 0;
+    double last_packet_timestamp = 0;
 
     printf("\nReading packets:\n");
 
@@ -261,7 +266,15 @@ int main(int argc, char *argv[]) {
             while (p <= read_data.last_packet) {
                 if (p->channel == 0) {
                     // packets with channel number 0 are Averaging data
-                    ProcessADCPacket(p, &param_info);
+                    double packet_ts = ProcessPacket(p, &param_info);
+                    if (last_packet_timestamp > 0) {
+                        double packet_rate =
+                            (1.0 / (packet_ts - last_packet_timestamp));
+                        double packet_rate_kHz =
+                            packet_rate * 1000 * 1000 * 1000;
+                        printf("Packet rate: %.3f kHz\n", packet_rate_kHz);
+                    }
+                    last_packet_timestamp = packet_ts;
                 }
 
                 // go to next packet
