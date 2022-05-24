@@ -8,7 +8,7 @@ The code in this repository is licensed under the [Mozilla Public License 2.0](L
 We encourage you to contribute to this repository. By uploading to this repository you agree to make your changes available under the beforementioned license.
 
 ## Ndigo6G-12
-![Ndigo6G-12 connections](https://github.com/cronologic-de/ndigo6g_babel/tree/main/images/Ndigo6G_connections.png)
+![Ndigo6G-12 connections](images/Ndigo6G_connections.png)
 
 ## Examples
 
