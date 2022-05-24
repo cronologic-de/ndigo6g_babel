@@ -1214,9 +1214,6 @@ typedef struct {
      */
     double analog_offsets[NDIGO6G12_ADC_CHANNEL_COUNT];
 
-    /*! \brief FPGA TDC input configuration ( not yet implemented)
-
-
     /*! \brief Set DAC for trigger threshold of TDC inputs.
     *
     *       0 - 3: THS788 A - D

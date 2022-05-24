@@ -47,7 +47,7 @@ int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
         printf("Could not configure Ndigo6G-Averager: %s\n",
                ndigo6g12_get_last_error_message(device));
         ndigo6g12_close(device);
-        return (1);
+        return 1;
     }
 
     // configuration for the ADC channel
@@ -291,5 +291,5 @@ int main(int argc, char *argv[]) {
     // deactivate Ndigo6G-Averager
     ndigo6g12_close(&device);
 
-    return true;
+    return 0;
 }
