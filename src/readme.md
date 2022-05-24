@@ -1,7 +1,7 @@
 # File description
 
 ## ndigo6g12_averager_example.cpp
-Example code using to read Ndigo6G-12 Averager data using the ndigo6g12_driver.dll.
+Example code to read Ndigo6G-12 Averager data using the ndigo6g12_driver.dll.
 
 ### Build
 Directory ndigo6g_babel:
