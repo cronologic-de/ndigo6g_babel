@@ -13,7 +13,7 @@ We encourage you to contribute to this repository. By uploading to this reposito
 ## Directory Sructure
     .
     ├── images/     # images used in documentation
-    ├── include/    # header files required to use the ndigo6g12_driver
+    ├── include/    # header files required to use the ndigo6g12_driver DLL
     ├── libs/       # ndigo6g12_driver DLL
     └── src/        # example applications using the ndigo6g12_driver DLL
 
