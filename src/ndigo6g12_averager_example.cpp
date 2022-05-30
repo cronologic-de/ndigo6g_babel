@@ -1,4 +1,5 @@
-// ndigo6g12_averager_example.cpp : Example application for the Ndigo6G-Averager
+// ndigo6g12_averager_example.cpp
+// Example application for the Ndigo6G-12 Averager
 //
 #include "ndigo6g12_interface.h"
 #include "stdlib.h"
@@ -7,6 +8,7 @@
 #include <tchar.h>
 #include <windows.h>
 
+// initialize Ndigo6G-12 Averager device
 ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
                                       int card_index) {
     // prepare initialization
@@ -19,8 +21,8 @@ ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
     params.buffer_size[0] = buffer_size; // size of the packet buffer
     params.board_id = board_id; // value copied to "card" field of every packet,
                                 // allowed range 0..255
-    params.card_index = card_index; // which of the Ndigo6G-Averager board found
-                                    // in the system to be used
+    params.card_index = card_index; // which of the Ndigo6G-12 Averager board
+                                    // found in the system to be used
 
     // initialize card
     int error_code;
@@ -28,7 +30,17 @@ ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
     ndigo6g12_device device;
     error_code = ndigo6g12_init(&device, &params, &error_message);
     if (error_code != CRONO_OK) {
-        printf("Could not init Ndigo6G-Averager: %s\n", error_message);
+        printf("Could not init Ndigo6G-12 Averager: %s\n", error_message);
+        ndigo6g12_close(&device);
+        exit(1);
+    }
+
+    // check if firmware supports Averager mode
+    ndigo6g12_static_info si;
+    ndigo6g12_get_static_info(&device, &si);
+    if (si.application_type != 5) {
+        printf(
+            "Installed Ndigo6G-12 firmware does not support Averager mode.\n");
         ndigo6g12_close(&device);
         exit(1);
     }
@@ -44,12 +56,13 @@ int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
     // so that the configuration is valid and only parameters
     // of interest have to be set explicitly
     if (CRONO_OK != ndigo6g12_get_default_configuration(device, &config)) {
-        printf("Could not configure Ndigo6G-Averager: %s\n",
+        printf("Could not get default configuration: %s\n",
                ndigo6g12_get_last_error_message(device));
         ndigo6g12_close(device);
         return 1;
     }
 
+    //*********************************************************************************************
     // configuration for the ADC channel
 
     // single channel mode with 6.4 Gsps
@@ -59,16 +72,19 @@ int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
     // averating data saturates at +/- 2^21 - 1
     config.output_mode = NDIGO6G12_OUTPUT_MODE_SIGNED32;
 
-    // enable ADC channel A and trigger on the falling edge
+    // enable ADC channel A and trigger on the falling edge of FPGA0 input
     // shift baseline of analog inputs to +350 mV
     config.analog_offsets[0] = NDIGO6G12_DC_OFFSET_N_NIM * -1;
-
-    // set trigger level on FPGA0 input to -350 mV
-    config.tdc_trigger_offsets[4] = NDIGO6G12_DC_OFFSET_N_NIM;
 
     // trigger on falling edge of FPGA0 input
     config.trigger[NDIGO6G12_TRIGGER_FPGA0].edge = true;
     config.trigger[NDIGO6G12_TRIGGER_FPGA0].rising = false;
+    // config.trigger[NDIGO6G12_TRIGGER_FPGA0].threshold is not applicable for
+    // TDC[0..3]/FPGA0/FPGA1 inputs
+
+    // set trigger level on FPGA0 input to -350 mV
+    config.tdc_trigger_offsets[NDIGO6G12_TIGER_FPGA0] =
+        NDIGO6G12_DC_OFFSET_N_NIM;
 
     // enable channel
     config.trigger_block[0].enabled = true;
@@ -100,16 +116,15 @@ int configure_ndigo6g12(ndigo6g12_device *device, int averaging_count) {
 
     // write configuration to board
     int error_code = ndigo6g12_configure(device, &config);
-
     if (error_code != CRONO_OK) {
-        printf("Could not configure Ndigo6G-Averager: %s\n",
+        printf("Could not configure Ndigo6G-12 Averager: %s\n",
                ndigo6g12_get_last_error_message(device));
-        return (1);
+        return 1;
     }
     return 0;
 }
 
-// print some basic information about the Ndigo6G-Averager device
+// print some basic information about the Ndigo6G-12 Averager device
 void print_device_information(ndigo6g12_device *device) {
     ndigo6g12_static_info si;
     ndigo6g12_get_static_info(device, &si);
@@ -151,10 +166,11 @@ double ProcessPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
     // not adjusted for ADC data precursor
     double packet_ts = pkt->timestamp * pi->packet_ts_period;
 
-    printf("\nPacket - TS: %.3f ns\n", (packet_ts / 1000.0));
+    printf("\nPacket timestamp: %.3f ns\n", (packet_ts / 1000.0));
 
     // packet length is number of 64 bit words of data
     // the first two 64 bit packet data words are additional header information
+    uint32_t data_offset = 2;
     // only the first currently carries valid information
     uint64_t averaging_header0 = *(pkt->data);
 
@@ -167,11 +183,11 @@ double ProcessPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
     // does NOT indicate that the input signal has not exceeded the ADC range
     bool averaging_overflow = (averaging_header0 >> 32) & 0x2;
 
-    // number of iterations skipped due to possible data overflow
-    int iterations_skipped = (averaging_header0 & 0xffffff);
+    // number of iterations, may be less than requested
+    int iterations_performed = (averaging_header0 & 0xffffff);
+    printf("Averaging iterations: %d\n", iterations_performed);
 
     // 2 averaged ADC samples are stored in each 64 bit chunk of packet data
-    uint32_t data_offset = 2;
     uint32_t sample_count = ((pkt->length - data_offset) * 2);
 
     // ADC data is a signed 32 bit integer
@@ -201,7 +217,7 @@ int main(int argc, char *argv[]) {
     // largest Averaging data packet has about 4 MiByte
     const int64_t BUFFER_SIZE = 128 * 1024 * 1024;
 
-    // use first Ndigo6G-Averager device found in the system
+    // use the first Ndigo6G-12 Averager device found in the system
     const int CARD_INDEX = 0;
 
     // set board id in all packets to 0
@@ -221,7 +237,11 @@ int main(int argc, char *argv[]) {
 
     // set the configuration required for capturing data
     int averaging_count = 16; // average 16 trigger events
+
     int status = configure_ndigo6g12(&device, averaging_count);
+    if (status != 0) {
+        exit(1);
+    }
 
     // configure readout behaviour
     // automatically acknowledge all data as processed
@@ -239,7 +259,7 @@ int main(int argc, char *argv[]) {
         printf("Could not start capturing: %s",
                ndigo6g12_get_last_error_message(&device));
         ndigo6g12_close(&device);
-        return status;
+        exit(1);
     }
 
     // get current sample rate to calculate event timestamps
@@ -288,7 +308,7 @@ int main(int argc, char *argv[]) {
     // shut down packet generation and DMA transfers
     ndigo6g12_stop_capture(&device);
 
-    // deactivate Ndigo6G-Averager
+    // deactivate Ndigo6G-12 Averager
     ndigo6g12_close(&device);
 
     return 0;

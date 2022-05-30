@@ -1,4 +1,5 @@
-// ndigo6g12_example.cpp : Example application for the Ndigo6G-12
+// ndigo6g12_example.cpp
+// Example application for the Ndigo6G-12
 //
 #include "ndigo6g12_interface.h"
 #include "stdlib.h"
@@ -7,6 +8,7 @@
 #include <tchar.h>
 #include <windows.h>
 
+// initialize Ndigo6G-12 device
 ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
                                       int card_index) {
     // prepare initialization
@@ -33,6 +35,16 @@ ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
         exit(1);
     }
 
+    // check if firmware supports 6.4 Gsps mode
+    ndigo6g12_static_info si;
+    ndigo6g12_get_static_info(&device, &si);
+    if (si.application_type != 1) {
+        printf(
+            "Installed Ndigo6G-12 firmware does not support 6.4 Gsps mode.\n");
+        ndigo6g12_close(&device);
+        exit(1);
+    }
+
     return device;
 }
 
@@ -45,7 +57,7 @@ int configure_ndigo6g12(ndigo6g12_device *device, int adc_threshold,
     // so that the configuration is valid and only parameters
     // of interest have to be set explicitly
     if (CRONO_OK != ndigo6g12_get_default_configuration(device, &config)) {
-        printf("Could not configure Ndigo6G-12: %s\n",
+        printf("Could not get default configuration: %s\n",
                ndigo6g12_get_last_error_message(device));
         ndigo6g12_close(device);
         return 1;
@@ -56,12 +68,13 @@ int configure_ndigo6g12(ndigo6g12_device *device, int adc_threshold,
 
     // enable TDC channels
     for (int i = 0; i < NDIGO6G12_TDC_CHANNEL_COUNT; i++) {
-        config.tdc_trigger_offsets[i] =
-            NDIGO6G12_DC_OFFSET_N_NIM; // for NIM pulses: trigger at -350 mV
+        // for NIM pulses: trigger at -350 mV
+        config.tdc_trigger_offsets[i] = NDIGO6G12_DC_OFFSET_N_NIM;
 
-        config.tdc_configuration.channel[i].enable = true; // enable TDC channel
-        config.tdc_configuration.channel[i].rising =
-            false; // trigger on falling edges
+        // enable TDC channel
+        config.tdc_configuration.channel[i].enable = true;
+        // trigger on falling edges
+        config.tdc_configuration.channel[i].rising = false;
 
         // enable falling edge trigger as input to trigger matrix for selected
         // TDC channel only required if used as trigger source for Gating, TiGer
@@ -91,15 +104,16 @@ int configure_ndigo6g12(ndigo6g12_device *device, int adc_threshold,
     }
 
     //*********************************************************************************************
-    // configuration for the ADC channels
+    // configuration for the ADC channel
 
     // single channel mode with 6.4 Gsps
     config.adc_mode = NDIGO6G12_ADC_MODE_A;
 
-    // sample value range: -2048 .. 2048
+    // ADC sample value range -32768 .. 32767
+
     config.output_mode = NDIGO6G12_OUTPUT_MODE_SIGNED16;
 
-    // enable ADC channel A and trigger on the falling edge
+    // enable ADC channel A and trigger on the falling edge of ADC data
     // shift baseline of analog inputs to +350 mV
     config.analog_offsets[0] = NDIGO6G12_DC_OFFSET_N_NIM * -1;
 
@@ -113,6 +127,7 @@ int configure_ndigo6g12(ndigo6g12_device *device, int adc_threshold,
     // multiples of 32 ADC samples (5 ns recording time)
     config.trigger_block[0].length = 1;
     // multiples of 32 ADC samples, gets added to packet length
+
     config.trigger_block[0].precursor = 1;
 
     // select ADC data as trigger source of the channel
@@ -138,7 +153,7 @@ int configure_ndigo6g12(ndigo6g12_device *device, int adc_threshold,
     if (error_code != CRONO_OK) {
         printf("Could not configure Ndigo6G-12: %s\n",
                ndigo6g12_get_last_error_message(device));
-        return (1);
+        return 1;
     }
     return 0;
 }
@@ -180,15 +195,16 @@ void print_device_information(ndigo6g12_device *device) {
     printf("ADC Sample delay             : %.2f ps\n", pi.adc_sample_delay);
 }
 
-int ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi,
-                     int threshold) {
+double ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi,
+                        int threshold) {
     // calculate packet timestamp in picoseconds
     // not adjusted for ADC data precursor
     double packet_ts = pkt->timestamp * pi->packet_ts_period;
 
-    printf("ADC packet - TS: %.3f ns\r\n", (packet_ts / 1000.0));
+    printf("\nADC packet - TS: %.3f ns\n", (packet_ts / 1000.0));
 
     // packet length is number of 64 bit words of data
+
     // 4 ADC samples are stored in each 64 bit chunk of packet data
     uint32_t sample_count = (pkt->length * 4);
 
@@ -211,16 +227,15 @@ int ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi,
             // adjust for ADC pipeline delay
             falling_edge_ts -= pi->adc_sample_delay;
 
-            printf("ADC packet falling edge event - TS: %.3f ns\r\n",
+            printf("ADC packet falling edge event - TS: %.3f ns\n",
                    (falling_edge_ts / 1000.0));
             break;
         }
     }
-    printf("\n");
-    return 0;
+    return packet_ts;
 }
 
-int ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
+void ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
     // TDC packet timestamp relates to end of packet
     // adjust for timespan covered
     double packet_ts =
@@ -232,7 +247,7 @@ int ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
     // 2 TDC events are stored in each 64 bit chunk of packet data
     uint32_t tdc_event_cnt = pkt->length * 2;
 
-    printf("TDC packet with %d events (may include rollover) - TS: %.3f ns\r\n",
+    printf("\nTDC packet with %d events (may include rollover) - TS: %.3f ns\n",
            tdc_event_cnt, (packet_ts / 1000.0));
 
     // event encoding:
@@ -262,7 +277,7 @@ int ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
             // calculate timestamp of TDC event in picoseconds
             double edge_ts_ps = event_ts * pi->tdc_period;
             edge_ts_ps += packet_ts;
-            printf("TDC event on channel %d - TS: %.3f ns\r\n", tdc_channel,
+            printf("TDC event on channel %d - TS: %.3f ns\n", tdc_channel,
                    edge_ts_ps / 1000.0);
         }
 
@@ -275,16 +290,14 @@ int ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
             rollover_era += pi->tdc_rollover_period;
         }
     }
-    printf("\n");
-    return 0;
 }
 
 int main(int argc, char *argv[]) {
-    // use 128 MB to buffer incoming data
+    // use 128 MiByte to buffer incoming data
     // largest ADC data packet has about 500 KiByte
     const int64_t BUFFER_SIZE = 128 * 1024 * 1024;
 
-    // use first Ndigo6G-12 device found in the system
+    // use the first Ndigo6G-12 device found in the system
     const int CARD_INDEX = 0;
 
     // set board id in all packets to 0
@@ -306,6 +319,9 @@ int main(int argc, char *argv[]) {
     int adc_threshold = 0;
     bool enable_gating = false;
     int status = configure_ndigo6g12(&device, adc_threshold, enable_gating);
+    if (status != 0) {
+        exit(1);
+    }
 
     // configure readout behaviour
     // automatically acknowledge all data as processed
@@ -323,7 +339,7 @@ int main(int argc, char *argv[]) {
         printf("Could not start capturing: %s",
                ndigo6g12_get_last_error_message(&device));
         ndigo6g12_close(&device);
-        return status;
+        exit(1);
     }
 
     // get current sample rate to calculate event timestamps
@@ -331,9 +347,11 @@ int main(int argc, char *argv[]) {
     ndigo6g12_get_param_info(&device, &param_info);
 
     // some book keeping
+
     int packet_count = 0;
+    double last_packet_timestamp = 0;
     // ADC data is provided in packets, one packet per ADC channel and trigger
-    // TDC data is provided in a singe packet for all TDC inputs in a certain
+    // TDC data is provided in a single packet for all TDC inputs in a certain
     // timespan
     int pkt_cnt[5];
     for (int i = 0; i < 5; i++) {
@@ -353,12 +371,22 @@ int main(int argc, char *argv[]) {
             // iterate over all packets received with the last read
             volatile crono_packet *p = read_data.first_packet;
             while (p <= read_data.last_packet) {
-                if (p->channel < 5)
+                if (p->channel < 5) {
                     pkt_cnt[p->channel]++;
+                }
 
                 if (p->channel < 4) {
                     // packets with channel number < 4 are ADC data
-                    ProcessADCPacket(p, &param_info, adc_threshold);
+                    double packet_ts =
+                        ProcessADCPacket(p, &param_info, adc_threshold);
+                    if (last_packet_timestamp > 0) {
+                        double packet_rate =
+                            (1.0 / (packet_ts - last_packet_timestamp));
+                        double packet_rate_kHz =
+                            packet_rate * 1000 * 1000 * 1000;
+                        printf("Packet rate: %.3f kHz\n", packet_rate_kHz);
+                    }
+                    last_packet_timestamp = packet_ts;
                 } else {
                     // packets with channel number 4 are TDC data
                     ProcessTDCPacket(p, &param_info);
