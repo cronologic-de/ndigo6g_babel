@@ -10,10 +10,22 @@ We encourage you to contribute to this repository. By uploading to this reposito
 ## Ndigo6G-12
 ![Ndigo6G-12 connections](images/Ndigo6G_connections.png)
 
+## Directory Sructure
+    .
+    ├── images/     # images used in documentation
+    ├── include/    # header files required to use the ndigo6g12_driver
+    ├── libs/       # ndigo6g12_driver DLL
+    └── src/        # example applications using the ndigo6g12_driver DLL
+
 ## Examples
 
 ### src/ndigo6g12_averager_example.cpp
 Example code to read Ndigo6G-12 Averager data using the ndigo6g12_driver_64.dll.
 ```
 clang++.exe .\src\ndigo6g12_averager_example.cpp -l .\libs\ndigo6g12_driver_64.lib -I .\include\ -o averager.exe
+```
+### src/ndigo6g12_example.cpp
+Example code to read Ndigo6G-12 6.4 Gsps ADC and TDC data using the ndigo6g12_driver_64.dll.
+```
+clang++.exe .\src\ndigo6g12_example.cpp -l .\libs\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
 ```
