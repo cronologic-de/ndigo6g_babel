@@ -201,7 +201,7 @@ double ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi,
     // not adjusted for ADC data precursor
     double packet_ts = pkt->timestamp * pi->packet_ts_period;
 
-    printf("\nADC packet - TS: %.3f ns\n", (packet_ts / 1000.0));
+    printf("\nADC packet timestamp: %.3f ns\n", (packet_ts / 1000.0));
 
     // packet length is number of 64 bit words of data
 
@@ -227,7 +227,7 @@ double ProcessADCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi,
             // adjust for ADC pipeline delay
             falling_edge_ts -= pi->adc_sample_delay;
 
-            printf("ADC packet falling edge event - TS: %.3f ns\n",
+            printf("ADC packet falling edge event timestamp: %.3f ns\n",
                    (falling_edge_ts / 1000.0));
             break;
         }
@@ -247,8 +247,7 @@ void ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
     // 2 TDC events are stored in each 64 bit chunk of packet data
     uint32_t tdc_event_cnt = pkt->length * 2;
 
-    printf("\nTDC packet with %d events (may include rollover) - TS: %.3f ns\n",
-           tdc_event_cnt, (packet_ts / 1000.0));
+    printf("\nTDC packet timestamp: %.3f ns\n", (packet_ts / 1000.0));
 
     // event encoding:
     // Bits 31 downto 8: event timestamp in TDC bins relative to packet
@@ -277,7 +276,7 @@ void ProcessTDCPacket(volatile crono_packet *pkt, ndigo6g12_param_info *pi) {
             // calculate timestamp of TDC event in picoseconds
             double edge_ts_ps = event_ts * pi->tdc_period;
             edge_ts_ps += packet_ts;
-            printf("TDC event on channel %d - TS: %.3f ns\n", tdc_channel,
+            printf("TDC event on channel %d timestamp: %.3f ns\n", tdc_channel,
                    edge_ts_ps / 1000.0);
         }
 
@@ -384,7 +383,7 @@ int main(int argc, char *argv[]) {
                             (1.0 / (packet_ts - last_packet_timestamp));
                         double packet_rate_kHz =
                             packet_rate * 1000 * 1000 * 1000;
-                        printf("Packet rate: %.3f kHz\n", packet_rate_kHz);
+                        printf("ADC packet rate: %.3f kHz\n", packet_rate_kHz);
                     }
                     last_packet_timestamp = packet_ts;
                 } else {
