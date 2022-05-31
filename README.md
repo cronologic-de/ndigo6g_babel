@@ -18,12 +18,12 @@ We encourage you to contribute to this repository. By uploading to this reposito
 ## Ndigo6G-12 slot cover connections
 ![Ndigo6G-12 connections](images/Ndigo6G_connections.png)
 
-## Hardware Installation
+## Ndigo6G-12 Hardware Installation
 ![Ndigo6G-12 hardware installation](images/ndigo6g12_hw_installation.jpg)
 
 Insert the Ndigo6G-12 in a x8 or x16 PCI Express 3.0 slot and attach a 6-pin GPU power cable to the rear connector. The Ndigo6G-12 does not work when the power connector is missing. The Ndigo6G-12 will work in PCIe slots with less than 8 lanes or confirming to PCIe 1.0 or 2.0 albeit at reduced maximum data transfer rates.
 
-## Examples
+## C/C++ Examples
 The example applications can be build using the [Clang frontend for LLVM](https://clang.llvm.org/index.html). Easy LLVM installation for Windows is provided by the [Chocolatey project](https://chocolatey.org/): [LLVM Chocolatey package](https://community.chocolatey.org/packages/llvm)
 
 ### src/ndigo6g12_averager_example.cpp
