@@ -10,7 +10,7 @@ We encourage you to contribute to this repository. By uploading to this reposito
 ## Ndigo6G-12 slot cover connections
 ![Ndigo6G-12 connections](images/Ndigo6G_connections.png)
 
-## Directory Sructure
+## Directory Structure
     .
     ├── images/     # images used in documentation
     ├── include/    # header files required to use the ndigo6g12_driver DLL
