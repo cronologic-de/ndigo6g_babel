@@ -15,7 +15,7 @@ We encourage you to contribute to this repository. By uploading to this reposito
     ├── src/        # example applications using the ndigo6g12_driver DLL
     └── tools/      # supporting tools and tool configurations
 
-## Ndigo6G-12 slot cover connections
+## Ndigo6G-12 Slot Cover Connections
 ![Ndigo6G-12 connections](images/Ndigo6G_connections.png)
 
 ## Ndigo6G-12 Hardware Installation
