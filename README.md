@@ -18,6 +18,9 @@ We encourage you to contribute to this repository. By uploading to this reposito
     ├── src/        # example applications using the ndigo6g12_driver DLL
     └── tools/      # supporting tools and tool configurations
 
+## Hardware Installation
+![Ndigo6G-12 hardware installation](images/ndigo6g12_hw_installation.jpg)
+
 ## Examples
 The example applications can be build using the [Clang frontend for LLVM](https://clang.llvm.org/index.html). Easy LLVM installation for Windows is provided by the [Chocolatey project](https://chocolatey.org/): [LLVM Chocolatey package](https://community.chocolatey.org/packages/llvm)
 
