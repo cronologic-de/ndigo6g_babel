@@ -24,19 +24,35 @@ We encourage you to contribute to this repository. By uploading to this reposito
 Insert the Ndigo6G-12 in a x8 or x16 PCI Express 3.0 slot and attach a 6-pin GPU power cable to the rear connector. The Ndigo6G-12 does not work when the power connector is missing. The Ndigo6G-12 will work in PCIe slots with less than 8 lanes or confirming to PCIe 1.0 or 2.0 albeit at reduced maximum data transfer rates.
 
 ## Electrical and Environmental Characteristics
+### Analog Inputs
 Symbol | Parameter | Min | Typical | Max | Units
 --- | --- | --- | --- | --- | ---
+V<sub>p-p</sub> | Peak to peak input voltage |  |  | 1000 | mV
+Z<sub>p</sub> | Input impedance (AC-coupled) |   | 50 |   | Ω
+<nbsp> | Adjustable offset | -500  |   | 500 | mV
+    
+### Digital Inputs
+Symbol | Parameter | Min | Typical | Max | Units
+--- | --- | --- | --- | --- | ---
+V<sub>p-p</sub> | Peak to peak input voltage |  |  | 1300 | mV
+Z<sub>p</sub> | Input impedance (AC-coupled) |   | 50 |   | Ω
+<nbsp> | Trigger threshold | -1300  |   | 1300 | mV
+
+### Environment
+Symbol | Parameter | Min | Typical | Max | Units
+--- | --- | --- | --- | --- | ---    
 T | ambient temperature | 5 |   | 40 | °C
 RH | relative humidity | 20 |   | 75 | %
+
+### Power Supply
+Symbol | Parameter | Min | Typical | Max | Units
+--- | --- | --- | --- | --- | ---    
 I<sub>3V3</sub> | PCIe 3,3V rail |  | tbd |  | mA
 VCC<sub>3V3</sub> | PCIe 3,3V rail | 3.1 | 3.3 | 3.6 | V
 I<sub>12V</sub> | PCIe 12V rail |  | 2.5 |  | A
 VCC<sub>12V</sub> | PCIe 12V rail | 11.1 | 12 | 12.9 | V
 I<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | tbd |  | mA
 VCC<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 3.3 |  | V
-V<sub>p-p</sub> | Peak to peak input voltage |  |  | 1000 | mV
-Z<sub>p</sub> | Input impedance |   | 50 |   | Ω
-   | Analog offset | -500  |   | 500 | mV
 
 
 ## C/C++ Examples
