@@ -8,6 +8,10 @@
 #include <tchar.h>
 #include <windows.h>
 
+#define APP_TYPE2 "Two ADC channels @3.2 Gsps"
+#define APP_TYPE4 "Four ADC channels @1.6 Gsps"
+#define APP_TYPE5 "Averaging mode"
+
 // initialize Ndigo6G-12 device
 ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
                                       int card_index) {
@@ -38,9 +42,22 @@ ndigo6g12_device initialize_ndigo6g12(int buffer_size, int board_id,
     // check if firmware supports 6.4 Gsps mode
     ndigo6g12_static_info si;
     ndigo6g12_get_static_info(&device, &si);
-    if (si.application_type != 1) {
+    char* pUnsupportedAppType = NULL ;
+    switch (si.application_type) {
+        case 2:
+            pUnsupportedAppType = (char*)APP_TYPE2 ;
+            break ;
+        case 4:
+            pUnsupportedAppType = (char*)APP_TYPE4 ;
+            break ;
+        case 5: 
+            pUnsupportedAppType = (char*)APP_TYPE5 ;
+            break ;
+    }
+    if (pUnsupportedAppType) {
         printf(
-            "Installed Ndigo6G-12 firmware does not support 6.4 Gsps mode.\n");
+            "Installed Ndigo6G-12 firmware implements mode '%s'"
+            "but this example assumes 'one ADC channel @6.4 Gsps'\n", pUnsupportedAppType);
         ndigo6g12_close(&device);
         exit(1);
     }

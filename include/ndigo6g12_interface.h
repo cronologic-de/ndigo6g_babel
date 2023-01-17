@@ -566,7 +566,7 @@ typedef struct {
     int fan_speed;
 
     /**
-     * Temperature of the FPGA in °C.
+     * Temperature of the FPGA in ï¿½C.
      */
     double fpga_temperature;
 
@@ -612,20 +612,20 @@ typedef struct {
      */
     double opamp_5v2;
     /**
-     * Shows temperature of temp4633_1 in °C
+     * Shows temperature of temp4633_1 in ï¿½C
      */
     double temp4633_1;
     /**
-     * Shows temperature of temp4633_2 in °C
+     * Shows temperature of temp4633_2 in ï¿½C
      */
     double temp4633_2;
     /**
-     * Shows temperature of temp4644 in °C
+     * Shows temperature of temp4644 in ï¿½C
      */
     double temp4644;
 
     /**
-     * Temperature of the TDC in °C.
+     * Temperature of the TDC in ï¿½C.
      */
     double tdc1_temp;
 
@@ -635,14 +635,14 @@ typedef struct {
     double ev12_cmiref;
 
     /**
-     * Temperature of the ADC in °C.
+     * Temperature of the ADC in ï¿½C.
      */
     double ev12_temp;
 
     /**
      * Alert bits from temperature sensor and the system monitor.
      *
-     * Bit 0 is set if the TDC temperature exceeds 140 °C. In this case the
+     * Bit 0 is set if the TDC temperature exceeds 140 ï¿½C. In this case the
      * TDC did shut down and the device needs to be reinitialized.
      */
     int alerts;
@@ -1342,6 +1342,49 @@ NDIGO6G12_API int ndigo6g12_count_devices(int *error_code,
 
 /*! \ingroup conffuncts
  *   \brief Copies the default configuration to the specified config pointer
+ * 
+ <dl class="params">
+  <dt>Default Values</dt>
+  <dd>
+    <table class="params">
+      <tr><td class="paramname">adc_mode</td><td>NDIGO6G12_ADC_MODE_A for AppType::AVERAGING and AppType::SINGLE_CHANNEL</td></tr>
+      <tr><td class="paramname"></td><td>NDIGO6G12_ADC_MODE_AD for AppType::DUAL_CHANNEL</td></tr>
+      <tr><td class="paramname"></td><td>NDIGO6G12_ADC_MODE_ABCD for AppType::QUAD_CHANNEL or others</td></tr>
+      <tr><td class="paramname">adc_cal_set</td><td>3 // Calibration data from Flash</td></tr>
+      <tr><td class="paramname">analog_offsets</td><td>0 // All channels</td></tr>
+      <tr><td class="paramname">tdc_trigger_offsets</td><td>0 // All channels</td></tr>
+      <tr><td class="paramname">tdc_trigger_offsets[4]</td><td>AUX2_CLK_THRESHOLD // If clk_use_aux2</td></tr>
+      <tr><td class="paramname">trigger[i].edge</td><td>true // All triggers</td></tr>
+      <tr><td class="paramname">trigger[i].rising</td><td>false // All triggers</td></tr>
+      <tr><td class="paramname">trigger[i].threshold</td><td>512 // All triggers</td></tr>
+      <tr><td class="paramname">trigger[i].enable_rand</td><td>true // All triggers</td></tr>
+      <tr><td class="paramname">trigger_block[i].enabled</td><td>false // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].retrigger</td><td>false // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].multi_shot_count</td><td>1 // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].precursor</td><td>0 // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].length</td><td>16 // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].sources</td><td>0 // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].gates</td><td>0 // All ADC Channels</td></tr>
+      <tr><td class="paramname">trigger_block[i].minimum_free_packets</td><td>0 // All ADC Channels</td></tr>
+      <tr><td class="paramname">gating_block[i].negate</td><td>false // All Gates</td></tr>
+      <tr><td class="paramname">gating_block[i].retrigger</td><td>false // All Gates</td></tr>
+      <tr><td class="paramname">gating_block[i].start</td><td>0 // All Gates</td></tr>
+      <tr><td class="paramname">gating_block[i].stop</td><td>1000 // All Gates</td></tr>
+      <tr><td class="paramname">gating_block[i].sources</td><td>0x00000000 // All Gates</td></tr>
+      <tr><td class="paramname">auto_trigger_period</td><td>200000</td></tr>
+      <tr><td class="paramname">auto_trigger_random_exponent</td><td>0</td></tr>
+      <tr><td class="paramname">output_mode</td><td>NDIGO6G12_OUTPUT_MODE_SIGNED32 for AppType::AVERAGING, NDIGO6G12_OUTPUT_MODE_SIGNED16 for others</td></tr>
+      <tr><td class="paramname">extended_bandwidth</td><td>false</td></tr>
+      <tr><td class="paramname">ramp_test_mode</td><td>false</td></tr>
+      <tr><td class="paramname">average_configuration.iterations</td><td>0</td></tr>
+      <tr><td class="paramname">average_configuration.timeout_threshold</td><td>0</td></tr>
+      <tr><td class="paramname">average_configuration.stop_manual</td><td>false</td></tr>
+      <tr><td class="paramname">average_configuration.stop_on_overflow</td><td>false</td></tr>
+      <tr><td class="paramname">average_configuration.stop_on_timeout</td><td>false</td></tr>
+      <tr><td class="paramname">average_configuration.use_saturation</td><td>true</td></tr>
+    </table>
+  </dd>
+</dl>
  */
 NDIGO6G12_API int
 ndigo6g12_get_default_configuration(ndigo6g12_device *device,
@@ -1353,6 +1396,31 @@ ndigo6g12_get_default_configuration(ndigo6g12_device *device,
  * @endlink . This must always be used to initialize the @link initparamsstruct
  * ndigo6g12_init_parameter() @endlink structure. Return values are listed @link
  * defdefinpar here @endlink. \param init is type *ndigo6g12_init_parameters
+* 
+ <dl class="params">
+  <dt>Default Values</dt>
+  <dd>
+    <table class="params">
+      <tr><td class="paramname">card_index</td><td>0</td></tr>
+      <tr><td class="paramname">board_id</td><td>0</td></tr>
+      <tr><td class="paramname">buffer_size</td><td>0</td></tr>
+      <tr><td class="paramname">dma_read_delay</td><td>8192</td></tr>
+      <tr><td class="paramname">perf_derating</td><td>0</td></tr>
+      <tr><td class="paramname">led_flashing_mode</td><td>1</td></tr>
+      <tr><td class="paramname">adc_channel_mask</td><td>0x0f // all 4 ADC channels enabled by default</td></tr>
+      <tr><td class="paramname">no_reference_clock</td><td>false</td></tr>
+      <tr><td class="paramname">use_external_clock</td><td>false</td></tr>
+      <tr><td class="paramname">use_aux2_clock</td><td>false</td></tr>
+      <tr><td class="paramname">ignore_lane_errors</td><td>false</td></tr>
+      <tr><td class="paramname">ignore_clock_errors</td><td>false</td></tr>
+      <tr><td class="paramname">adc_full_swing</td><td>false</td></tr>
+      <tr><td class="paramname">application_type</td><td>0 // use currently installed type</td></tr>
+      <tr><td class="paramname">force_bitstream_update</td><td>false</td></tr>
+      <tr><td class="paramname">partial_bitstream_size</td><td>0</td></tr>
+      <tr><td class="paramname">partial_bitstream</td><td>nullptr</td></tr>
+    </table>
+  </dd>
+</dl>
  */
 NDIGO6G12_API int
 ndigo6g12_get_default_init_parameters(ndigo6g12_init_parameters *init);
