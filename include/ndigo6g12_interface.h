@@ -566,7 +566,7 @@ typedef struct {
     int fan_speed;
 
     /**
-     * Temperature of the FPGA in �C.
+     * Temperature of the FPGA in C.
      */
     double fpga_temperature;
 
@@ -612,20 +612,20 @@ typedef struct {
      */
     double opamp_5v2;
     /**
-     * Shows temperature of temp4633_1 in �C
+     * Shows temperature of temp4633_1 in C
      */
     double temp4633_1;
     /**
-     * Shows temperature of temp4633_2 in �C
+     * Shows temperature of temp4633_2 in C
      */
     double temp4633_2;
     /**
-     * Shows temperature of temp4644 in �C
+     * Shows temperature of temp4644 in C
      */
     double temp4644;
 
     /**
-     * Temperature of the TDC in �C.
+     * Temperature of the TDC in C.
      */
     double tdc1_temp;
 
@@ -635,14 +635,14 @@ typedef struct {
     double ev12_cmiref;
 
     /**
-     * Temperature of the ADC in �C.
+     * Temperature of the ADC in C.
      */
     double ev12_temp;
 
     /**
      * Alert bits from temperature sensor and the system monitor.
      *
-     * Bit 0 is set if the TDC temperature exceeds 140 �C. In this case the
+     * Bit 0 is set if the TDC temperature exceeds 140 C. In this case the
      * TDC did shut down and the device needs to be reinitialized.
      */
     int alerts;
