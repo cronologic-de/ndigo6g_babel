@@ -47,6 +47,8 @@ extern "C" {
 //!< The number of timing generator blocks for the FPGA TDC inputs.
 #define NDIGO6G12_FPGA_TDC_TIGER_COUNT 2
 
+/*! \addtogroup adcdefs (ADC mode defines)
+ /{ */
 /*! \ingroup adcdefs
  * \brief 4 channel mode at sample rate 1600 Msps
  */
@@ -81,6 +83,7 @@ extern "C" {
 #define NDIGO6G12_ADC_MODE_A 7
 /*! \ingroup adcdefs
  * \brief 1 channel mode at sample rate 6400 Msps
+ * \}
  */
 #define NDIGO6G12_ADC_MODE_D 8
 /*! \ingroup outputdefs
@@ -245,7 +248,7 @@ typedef struct {
     int dma_read_delay;
 
     /*!
-     * Default 0: 6.4 Gsps. Do not change.
+     * Default 0: 1.6/3.2/6.4 Gsps. Do not change.
      */
     int perf_derating;
 
@@ -269,9 +272,23 @@ typedef struct {
     crono_bool_t no_reference_clock;
 
     /*!
-     * Default is false. Do not change.
+     * Use external 10 MHz clock as reference.
+     * Input is internal SMA or external LEMO connector
+     * depending on use_aux2_clock.
+     *
+     * Default is false.
      */
     crono_bool_t use_external_clock;
+
+    /*!
+     * If enabled use slot bracket LEMO as external
+     * reference clock input.
+     * Otherwise, the internal SMA connector is used.
+     * Has no effect if use_external_clock is false.
+     *
+     * Default is false.
+     */
+    crono_bool_t use_aux2_clock;
 
     /*!
      * Default is false. Do not change.
@@ -347,7 +364,7 @@ typedef struct {
      */
     int resolution;
 
-    /*! \brief Actual sample rate of currently sampled data.
+    /*! \brief Actual ADC sample rate of currently sampled data.
      *
      * depending on ADC mode: sample_rate = 6.4GHz/#channels.
      */
@@ -409,6 +426,16 @@ static const int NDIGO6G_BITSTREAM_DATE_LEN = 20;
 static const int NDIGO6G_CALIBARTION_DATE_LEN = 20;
 // length of ndigo6G12 flash signature
 static const int NDIGO6G_FLASH_SIG_LEN = 60;
+
+// application types
+// averaging mode
+static const int NDIGO6G_APP_TYPE_AVRG = 5;
+// four ADC channels @1.6 Gsps
+static const int NDIGO6G_APP_TYPE_4CH = 4;
+// two ADC channels @3.2 Gsps
+static const int NDIGO6G_APP_TYPE_2CH = 2;
+// one ADC channel @6.4 Gsps
+static const int NDIGO6G_APP_TYPE_1CH = 1;
 
 /**
  * Structure contains static information.
@@ -527,6 +554,7 @@ typedef struct {
      * 2: two ADC channels @3.2 Gsps
      * 4: four ADC channels @1.6 Gsps
      * 5: averaging mode
+     * See NDIGO6G_APP_TYPE_* constants
      */
     int application_type;
     /*!
@@ -630,7 +658,8 @@ typedef struct {
     double tdc1_temp;
 
     /**
-     * Shows measured Voltage for ev12_cmiref supply
+     * Shows voltage for ev12_cmiref supply. Measured or calibration target
+     * depending on board revision and assembly variant.
      */
     double ev12_cmiref;
 
@@ -969,7 +998,6 @@ typedef struct {
      * index 0 etc).
      */
     int sources;
-
 } ndigo6g12_gating_block;
 
 /*! \ingroup avrgcfg
@@ -1342,8 +1370,8 @@ NDIGO6G12_API int ndigo6g12_count_devices(int *error_code,
 
 /*! \ingroup conffuncts
  *   \brief Copies the default configuration to the specified config pointer
- * 
- <dl class="params">
+ *
+<dl class="params">
   <dt>Default Values</dt>
   <dd>
     <table class="params">
@@ -1351,8 +1379,8 @@ NDIGO6G12_API int ndigo6g12_count_devices(int *error_code,
       <tr><td class="paramname"></td><td>NDIGO6G12_ADC_MODE_AD for AppType::DUAL_CHANNEL</td></tr>
       <tr><td class="paramname"></td><td>NDIGO6G12_ADC_MODE_ABCD for AppType::QUAD_CHANNEL or others</td></tr>
       <tr><td class="paramname">adc_cal_set</td><td>3 // Calibration data from Flash</td></tr>
-      <tr><td class="paramname">analog_offsets</td><td>0 // All channels</td></tr>
-      <tr><td class="paramname">tdc_trigger_offsets</td><td>0 // All channels</td></tr>
+      <tr><td class="paramname">analog_offsets[i]</td><td>0 // All channels</td></tr>
+      <tr><td class="paramname">tdc_trigger_offsets[0-3]</td><td>0 // ADC channels</td></tr>
       <tr><td class="paramname">tdc_trigger_offsets[4]</td><td>AUX2_CLK_THRESHOLD // If clk_use_aux2</td></tr>
       <tr><td class="paramname">trigger[i].edge</td><td>true // All triggers</td></tr>
       <tr><td class="paramname">trigger[i].rising</td><td>false // All triggers</td></tr>
@@ -1385,7 +1413,7 @@ NDIGO6G12_API int ndigo6g12_count_devices(int *error_code,
     </table>
   </dd>
 </dl>
- */
+*/
 NDIGO6G12_API int
 ndigo6g12_get_default_configuration(ndigo6g12_device *device,
                                     ndigo6g12_configuration *config);
@@ -1396,14 +1424,15 @@ ndigo6g12_get_default_configuration(ndigo6g12_device *device,
  * @endlink . This must always be used to initialize the @link initparamsstruct
  * ndigo6g12_init_parameter() @endlink structure. Return values are listed @link
  * defdefinpar here @endlink. \param init is type *ndigo6g12_init_parameters
-* 
+ * 
  <dl class="params">
   <dt>Default Values</dt>
   <dd>
     <table class="params">
       <tr><td class="paramname">card_index</td><td>0</td></tr>
       <tr><td class="paramname">board_id</td><td>0</td></tr>
-      <tr><td class="paramname">buffer_size</td><td>0</td></tr>
+      <tr><td class="paramname">buffer_size[0]</td><td>64MB</td></tr>
+      <tr><td class="paramname">buffer_size[1-7]</td><td>0 (unused)</td></tr>
       <tr><td class="paramname">dma_read_delay</td><td>8192</td></tr>
       <tr><td class="paramname">perf_derating</td><td>0</td></tr>
       <tr><td class="paramname">led_flashing_mode</td><td>1</td></tr>
@@ -1421,7 +1450,7 @@ ndigo6g12_get_default_configuration(ndigo6g12_device *device,
     </table>
   </dd>
 </dl>
- */
+*/
 NDIGO6G12_API int
 ndigo6g12_get_default_init_parameters(ndigo6g12_init_parameters *init);
 
@@ -1440,13 +1469,12 @@ NDIGO6G12_API int ndigo6g12_configure(ndigo6g12_device *device,
  *
  *   With error_code and error_message the user must provide pointers where
  * error information should be written by the driver. The buffer for the error
- * message must contain at least 80 chars. \param *params is type @link
+ * message must contain at least 80 chars. \param *device is a pointer to a struct
+ * that receives the internal device reference \param *params is type @link
  * initparamsstruct ndigo6g12_init_parameters @endlink \param *error_code is
  * type int \param **error_message is type char. The buffer for the error
  * message has to contain at least 80 chars.
  */
-// NDIGO6G12_API ndigo6g12_device *ndigo6g12_init(ndigo6g12_init_parameters
-// *params, int *error_code, const char** error_message);
 NDIGO6G12_API int ndigo6g12_init(ndigo6g12_device *device,
                                  ndigo6g12_init_parameters *params,
                                  const char **error_message);
@@ -1540,7 +1568,7 @@ NDIGO6G12_API int ndigo6g12_mcap_fullreset(ndigo6g12_device *device);
 
 /*! Returns the state, corresponding to state code 'state', in string format.
  *
- *   @papram state[in]
+ *   @param[in] state
  */
 NDIGO6G12_API const char *ndigo6g12_device_state_to_str(int state);
 
