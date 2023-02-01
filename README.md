@@ -59,14 +59,14 @@ VCC<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 3.3 |  | V
 The example applications can be build using the [Clang frontend for LLVM](https://clang.llvm.org/index.html). Easy LLVM installation for Windows is provided by the [Chocolatey project](https://chocolatey.org/): [LLVM Chocolatey package](https://community.chocolatey.org/packages/llvm)
 
 
-### src/ndigo6g12_example.cpp
+### ug_example/ndigo6g12_example.cpp
 Example code to read Ndigo6G-12 6.4 Gsps ADC and TDC data using the ndigo6g12_driver_64.dll.
 ```
-clang++.exe .\src\ndigo6g12_example.cpp -l .\libs\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
+clang++.exe .\ug_example\ndigo6g12_example.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
 ```
 
-### src/ndigo6g12_averager_example.cpp
+### ug_example/ndigo6g12_averager_example.cpp
 Example code to read Ndigo6G-12 Averager data using the ndigo6g12_driver_64.dll.
 ```
-clang++.exe .\src\ndigo6g12_averager_example.cpp -l .\libs\ndigo6g12_driver_64.lib -I .\include\ -o averager.exe
+clang++.exe .\ug_example\ndigo6g12_averager_example.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o averager.exe
 ```
