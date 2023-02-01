@@ -20,8 +20,6 @@ on: # workflow_dispatch
     - 'lib/**'
     - 'include/**'
     - 'ug_example/**'
-  pull_request:
-    branches: ["main"]
 
 jobs:
   # ===========================================================================
