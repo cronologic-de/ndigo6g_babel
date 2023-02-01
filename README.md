@@ -11,8 +11,8 @@ We encourage you to contribute to this repository. By uploading to this reposito
     .
     ├── images/     # images used in documentation
     ├── include/    # header files required to use the ndigo6g12_driver DLL
-    ├── libs/       # ndigo6g12_driver DLL
-    ├── src/        # example applications using the ndigo6g12_driver DLL
+    ├── lib/        # ndigo6g12_driver DLL
+    ├── ug_example/ # example applications using the ndigo6g12_driver DLL
     └── tools/      # supporting tools and tool configurations
 
 ## Ndigo6G-12 Slot Cover Connections
