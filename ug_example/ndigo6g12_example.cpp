@@ -1,12 +1,21 @@
 // ndigo6g12_example.cpp
 // Example application for the Ndigo6G-12
 //
-#include "ndigo6g12_interface.h"
-#include "stdlib.h"
-
 #include <stdio.h>
-#include <tchar.h>
+#include <stdlib.h>
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#endif
+#include "ndigo6g12_interface.h"
+
+typedef unsigned int uint32;
+#if defined(_WIN32) || defined(_WIN64)
+typedef unsigned __int64 uint64;
+#define crono_sleep(x) Sleep(x)
+#else
+#include <unistd.h>
+#define crono_sleep(x) usleep(1000 * x)
+#endif
 
 #define APP_TYPE2 "Two ADC channels @3.2 Gsps"
 #define APP_TYPE4 "Four ADC channels @1.6 Gsps"
@@ -381,7 +390,7 @@ int main(int argc, char *argv[]) {
         // get pointers to acquired packets
         status = ndigo6g12_read(&device, &read_config, &read_data);
         if (status != CRONO_OK) {
-            Sleep(200);
+            crono_sleep(200);
             printf(" - No data! -\n");
         } else {
             // iterate over all packets received with the last read
