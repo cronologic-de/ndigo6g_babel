@@ -1,0 +1,119 @@
+name: Build All Projects
+#
+# Every build job:
+# - Is responsible for building one project, and committing the output 
+#   to the repository.
+# - Needs a relevant `Check-xyz` job to check if pushed files are concerned 
+#   files or NOT, if NOT then every step in the job will be bypassed.
+# - Needs the previous (orderd as written in the file here) build job to 
+#   guarantee a sequential run, mainly when committing updates to respository.
+#   Reason: since every job commits to the repository, if these jobs run concurrently
+#   then commit fails, even if there is no "technical" dependnecy between them.
+#   One drawback that if a build job fails, next jobs won't run. 
+#   Another one is the longer time taken.
+# - Should pull output of the previous job(s), to avoid error: 
+#   `tip of your current branch is behind its remote counterpart`
+
+on: # workflow_dispatch
+  push:
+    paths: # Collected from paths of all jobs below
+    - 'lib/**'
+    - 'include/**'
+    - 'ug_example/**'
+
+jobs:
+  # ===========================================================================
+  #
+  # Upon any change in sub files of ./include, ./lib, ./ug_example, the action 
+  # builds the user guide example.
+  #
+  Check-UserGuide-Example-Build:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      ok_to_proceed: ${{ steps.check.outputs.ok_to_proceed_val }}
+      
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      
+    - name: Get changed files in concerned folder(s)
+      id: changed-files-specific
+      uses: tj-actions/changed-files@v35
+      with:
+        files: |
+          include/**
+          lib/**
+          ug_example/**
+          
+    # Check if any file(s) in the concerned folder changed
+    - name: Check
+      id: check
+      if: steps.changed-files-specific.outputs.any_changed == 'false'
+      run: |
+        echo "No concerned files changed, suppressing processing."       
+        echo "ok_to_proceed_val=N" >> $GITHUB_OUTPUT
+
+  # ___________________________________________________________________________
+  #
+  UserGuide-Example-Build-For-Windows:
+    runs-on: windows-latest
+    needs: [ Check-UserGuide-Example-Build ]
+      # Check-UserGuide-Example-Build   # To check need to build
+    defaults:
+      run:
+        shell: cmd
+        
+    steps:
+    - name: echo Suppress Status if Needed
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed == 'N' }}
+      run: |
+        echo "Job execution processing is suppressed for no cencerned files are changed."
+        
+    - name: Checkout Code
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
+      uses: actions/checkout@v3
+    
+    - name: Pull Latest 
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
+      run: |
+        git pull
+        
+    # Assuming that 'stable-x86_64-pc-windows-msvc' is default
+    - name: Build x64 Release
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
+      run: | 
+        clang++.exe .\ug_example\ndigo6g12_example.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
+        dir ndigo_example.exe
+        clang++.exe .\ug_example\ndigo6g12_averager_example.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o averager.exe
+        dir averager.exe
+
+  # ___________________________________________________________________________
+  #
+  UserGuide-Example-Build-For-Ubuntu:
+    runs-on: ubuntu-latest
+    needs: [ Check-UserGuide-Example-Build ]
+      # Check-UserGuide-Example-Build   # To check need to build
+        
+    steps:
+    - name: echo Suppress Status if Needed
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed == 'N' }}
+      run: |
+        echo "Job execution processing is suppressed for no cencerned files are changed."
+        
+    - name: Checkout Code
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
+      uses: actions/checkout@v3
+    
+    - name: Pull Latest 
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
+      run: |
+        git pull
+        
+    - name: Build Release
+      if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
+      run: | 
+        g++ ./ug_example/ndigo6g12_example.cpp -I./include -L./lib -l:ndigo6g12_driver.a -o ndigo6g_example
+        ls ndigo6g_example
+        g++ ./ug_example/ndigo6g12_averager_example.cpp -I./include -L./lib -l:ndigo6g12_driver.a -o averager
+        ls averager
