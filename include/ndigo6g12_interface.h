@@ -421,21 +421,21 @@ typedef struct {
 } ndigo6g12_param_info;
 
 // bitstream date format: YYYY-MM-DD hh:mm:ss
-static const int NDIGO6G_BITSTREAM_DATE_LEN = 20;
+#define NDIGO6G_BITSTREAM_DATE_LEN 20
 // calibration date format: YYYY-MM-DD hh:mm
-static const int NDIGO6G_CALIBARTION_DATE_LEN = 20;
+#define NDIGO6G_CALIBARTION_DATE_LEN 20
 // length of ndigo6G12 flash signature
-static const int NDIGO6G_FLASH_SIG_LEN = 60;
+#define NDIGO6G_FLASH_SIG_LEN 60
 
 // application types
 // averaging mode
-static const int NDIGO6G_APP_TYPE_AVRG = 5;
+#define NDIGO6G_APP_TYPE_AVRG 5
 // four ADC channels @1.6 Gsps
-static const int NDIGO6G_APP_TYPE_4CH = 4;
+#define NDIGO6G_APP_TYPE_4CH 4
 // two ADC channels @3.2 Gsps
-static const int NDIGO6G_APP_TYPE_2CH = 2;
+#define NDIGO6G_APP_TYPE_2CH 2
 // one ADC channel @6.4 Gsps
-static const int NDIGO6G_APP_TYPE_1CH = 1;
+#define NDIGO6G_APP_TYPE_1CH 1
 
 /**
  * Structure contains static information.
