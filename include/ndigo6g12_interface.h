@@ -444,6 +444,8 @@ typedef struct {
 #define NDIGO6G_APP_TYPE_2CH 2
 // one ADC channel @6.4 Gsps
 #define NDIGO6G_APP_TYPE_1CH 1
+// use currently installed app type
+#define NDIGO6G_APP_TYPE_CURRENT 0
 
 /**
  * Structure contains static information.
@@ -558,6 +560,7 @@ typedef struct {
     int svn_revision;
     /*!
      * Shows the initialized mode
+     * 0: keep currently used application type
      * 1: one ADC channel @6.4 Gsps
      * 2: two ADC channels @3.2 Gsps
      * 4: four ADC channels @1.6 Gsps
