@@ -52,12 +52,12 @@ ndigo6g12_device initialize_ndigo6g12(int bufferSize, int boardId,
 
     // initialize card
     int errorCode;
-    const char *errorCode;
+    const char *szErrorCode;
     ndigo6g12_device device;
-    errorCode = ndigo6g12_init(&device, &params, &errorCode);
+    errorCode = ndigo6g12_init(&device, &params, &szErrorCode);
 
     if (errorCode != CRONO_OK) {
-        printf("Could not init Ndigo6G-12: %s\n", errorCode);
+        printf("Could not init Ndigo6G-12: %s\n", szErrorCode);
         printf("Please change path to the .cronorom in ndigo6g12_example.cpp\n");
         exit(1);
     }
