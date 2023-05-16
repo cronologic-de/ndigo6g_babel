@@ -107,7 +107,9 @@ class Ndigo6GAppSingle : public Ndigo6GApp {
     virtual void ConfigureADC(ndigo6g12_configuration *config,
                               int adc_threshold);
     virtual double ProcessADCPacket(crono_packet *pkt);
-    virtual void ProcessTDCTimestamp(int tdcChannel, double timestamp);
+    virtual void ProcessTDCTimestamp(int tdcChannel, double timestamp) {
+      
+    }
 };
 
 
