@@ -83,10 +83,8 @@ jobs:
     - name: Build x64 Release
       if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
       run: | 
-        clang++.exe .\ug_example\ndigo6g12_example.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
+        clang++.exe .\ug_example\ndigo6g12_example.cpp .\ug_example\ndigo6g12_adc_dual.cpp .\ug_example\ndigo6g12_adc_single.cpp .\ug_example\ndigo6g12_adc_averager.cpp .\ug_example\ndigo6g12_adc_quad.cpp .\ug_example\ndigo6g12_tdc.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
         dir ndigo_example.exe
-        clang++.exe .\ug_example\ndigo6g12_averager_example.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o averager.exe
-        dir averager.exe
 
   # ___________________________________________________________________________
   #
@@ -113,7 +111,5 @@ jobs:
     - name: Build Release
       if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
       run: | 
-        g++ ./ug_example/ndigo6g12_example.cpp -I./include -L./lib -l:ndigo6g12_driver.a -o ndigo6g_example
+        g++ ./ug_example/ndigo6g12_example.cpp ./ug_example/ndigo6g12_adc_dual.cpp ./ug_example/ndigo6g12_adc_single.cpp ./ug_example/ndigo6g12_adc_averager.cpp ./ug_example/ndigo6g12_adc_quad.cpp ./ug_example/ndigo6g12_tdc.cpp -I./include -L./lib -l:ndigo6g12_driver.a -o ndigo6g_example
         ls ndigo6g_example
-        g++ ./ug_example/ndigo6g12_averager_example.cpp -I./include -L./lib -l:ndigo6g12_driver.a -o averager
-        ls averager
