@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <float.h>
 
 // this utility class manages the arrival of timestamps for 
 // a number of channels and tries to group them to a start
