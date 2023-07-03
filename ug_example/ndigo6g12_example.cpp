@@ -47,16 +47,17 @@ ndigo6g12_device initialize_ndigo6g12(int bufferSize, int boardId,
     // switching of appType is required, if not specified the example will
     // return an error, if the appType does not match the current appType in the
     // firmware 
-    params.firmware_locations = ".";
+    params.firmware_locations =
+        "//diskstation/cronologic/RudolfJ/cronorom/current";
 
     // initialize card
     int errorCode;
-    const char *szErrorCode;
+    const char *errorMessage;
     ndigo6g12_device device;
-    errorCode = ndigo6g12_init(&device, &params, &szErrorCode);
+    errorCode = ndigo6g12_init(&device, &params, &errorMessage);
 
     if (errorCode != CRONO_OK) {
-        printf("Could not init Ndigo6G-12: %s\n", szErrorCode);
+        printf("Could not init Ndigo6G-12: %s\n", errorMessage);
         printf("Please change path to the .cronorom in ndigo6g12_example.cpp\n");
         exit(1);
     }
