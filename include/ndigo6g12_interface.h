@@ -897,7 +897,7 @@ typedef struct {
     crono_bool_t rising;
 
     /*! \brief use random bits for undefined LSBs of trigger timestamp
-     * should be left disabled
+     * should be left disabled (deprecated)
      */
     crono_bool_t enable_rand;
 } ndigo6g12_trigger;
