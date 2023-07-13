@@ -896,8 +896,10 @@ typedef struct {
      */
     crono_bool_t rising;
 
-    crono_bool_t
-        enable_rand; //!< use random bits for undefined LSBs of timestamp
+    /*! \brief use random bits for undefined LSBs of trigger timestamp
+     * should be left disabled (deprecated)
+     */
+    crono_bool_t enable_rand;
 } ndigo6g12_trigger;
 
 /*! \ingroup ndigotrgblock
@@ -1386,41 +1388,60 @@ NDIGO6G12_API int ndigo6g12_count_devices(int *error_code,
   <dt>Default Values</dt>
   <dd>
     <table class="params">
-      <tr><td class="paramname">adc_mode</td><td>NDIGO6G12_ADC_MODE_A for AppType::AVERAGING and AppType::SINGLE_CHANNEL</td></tr>
-      <tr><td class="paramname"></td><td>NDIGO6G12_ADC_MODE_AD for AppType::DUAL_CHANNEL</td></tr>
-      <tr><td class="paramname"></td><td>NDIGO6G12_ADC_MODE_ABCD for AppType::QUAD_CHANNEL or others</td></tr>
-      <tr><td class="paramname">adc_cal_set</td><td>3 // Calibration data from Flash</td></tr>
-      <tr><td class="paramname">analog_offsets[i]</td><td>0 // All channels</td></tr>
-      <tr><td class="paramname">tdc_trigger_offsets[0-3]</td><td>0 // ADC channels</td></tr>
-      <tr><td class="paramname">tdc_trigger_offsets[4]</td><td>AUX2_CLK_THRESHOLD // If clk_use_aux2</td></tr>
-      <tr><td class="paramname">trigger[i].edge</td><td>true // All triggers</td></tr>
-      <tr><td class="paramname">trigger[i].rising</td><td>false // All triggers</td></tr>
-      <tr><td class="paramname">trigger[i].threshold</td><td>512 // All triggers</td></tr>
-      <tr><td class="paramname">trigger[i].enable_rand</td><td>true // All triggers</td></tr>
-      <tr><td class="paramname">trigger_block[i].enabled</td><td>false // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].retrigger</td><td>false // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].multi_shot_count</td><td>1 // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].precursor</td><td>0 // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].length</td><td>16 // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].sources</td><td>0 // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].gates</td><td>0 // All ADC Channels</td></tr>
-      <tr><td class="paramname">trigger_block[i].minimum_free_packets</td><td>0 // All ADC Channels</td></tr>
-      <tr><td class="paramname">gating_block[i].negate</td><td>false // All Gates</td></tr>
-      <tr><td class="paramname">gating_block[i].retrigger</td><td>false // All Gates</td></tr>
-      <tr><td class="paramname">gating_block[i].start</td><td>0 // All Gates</td></tr>
-      <tr><td class="paramname">gating_block[i].stop</td><td>1000 // All Gates</td></tr>
-      <tr><td class="paramname">gating_block[i].sources</td><td>0x00000000 // All Gates</td></tr>
-      <tr><td class="paramname">auto_trigger_period</td><td>200000</td></tr>
-      <tr><td class="paramname">auto_trigger_random_exponent</td><td>0</td></tr>
-      <tr><td class="paramname">output_mode</td><td>NDIGO6G12_OUTPUT_MODE_SIGNED32 for AppType::AVERAGING, NDIGO6G12_OUTPUT_MODE_SIGNED16 for others</td></tr>
-      <tr><td class="paramname">extended_bandwidth</td><td>false</td></tr>
-      <tr><td class="paramname">ramp_test_mode</td><td>false</td></tr>
-      <tr><td class="paramname">average_configuration.iterations</td><td>0</td></tr>
-      <tr><td class="paramname">average_configuration.timeout_threshold</td><td>0</td></tr>
-      <tr><td class="paramname">average_configuration.stop_manual</td><td>false</td></tr>
-      <tr><td class="paramname">average_configuration.stop_on_overflow</td><td>false</td></tr>
-      <tr><td class="paramname">average_configuration.stop_on_timeout</td><td>false</td></tr>
-      <tr><td class="paramname">average_configuration.use_saturation</td><td>true</td></tr>
+      <tr><td class="paramname">adc_mode</td><td>NDIGO6G12_ADC_MODE_A for
+AppType::AVERAGING and AppType::SINGLE_CHANNEL</td></tr> <tr><td
+class="paramname"></td><td>NDIGO6G12_ADC_MODE_AD for
+AppType::DUAL_CHANNEL</td></tr> <tr><td
+class="paramname"></td><td>NDIGO6G12_ADC_MODE_ABCD for AppType::QUAD_CHANNEL or
+others</td></tr> <tr><td class="paramname">adc_cal_set</td><td>3 // Calibration
+data from Flash</td></tr> <tr><td class="paramname">analog_offsets[i]</td><td>0
+// All channels</td></tr> <tr><td
+class="paramname">tdc_trigger_offsets[0-3]</td><td>0 // ADC channels</td></tr>
+      <tr><td
+class="paramname">tdc_trigger_offsets[4]</td><td>AUX2_CLK_THRESHOLD // If
+clk_use_aux2</td></tr> <tr><td class="paramname">trigger[i].edge</td><td>true //
+All triggers</td></tr> <tr><td class="paramname">trigger[i].rising</td><td>false
+// All triggers</td></tr> <tr><td
+class="paramname">trigger[i].threshold</td><td>512 // All triggers</td></tr>
+      <tr><td class="paramname">trigger[i].enable_rand</td><td>true // All
+triggers</td></tr> <tr><td
+class="paramname">trigger_block[i].enabled</td><td>false // All ADC
+Channels</td></tr> <tr><td
+class="paramname">trigger_block[i].retrigger</td><td>false // All ADC
+Channels</td></tr> <tr><td
+class="paramname">trigger_block[i].multi_shot_count</td><td>1 // All ADC
+Channels</td></tr> <tr><td
+class="paramname">trigger_block[i].precursor</td><td>0 // All ADC
+Channels</td></tr> <tr><td class="paramname">trigger_block[i].length</td><td>16
+// All ADC Channels</td></tr> <tr><td
+class="paramname">trigger_block[i].sources</td><td>0 // All ADC
+Channels</td></tr> <tr><td class="paramname">trigger_block[i].gates</td><td>0 //
+All ADC Channels</td></tr> <tr><td
+class="paramname">trigger_block[i].minimum_free_packets</td><td>0 // All ADC
+Channels</td></tr> <tr><td
+class="paramname">gating_block[i].negate</td><td>false // All Gates</td></tr>
+      <tr><td class="paramname">gating_block[i].retrigger</td><td>false // All
+Gates</td></tr> <tr><td class="paramname">gating_block[i].start</td><td>0 // All
+Gates</td></tr> <tr><td class="paramname">gating_block[i].stop</td><td>1000 //
+All Gates</td></tr> <tr><td
+class="paramname">gating_block[i].sources</td><td>0x00000000 // All
+Gates</td></tr> <tr><td
+class="paramname">auto_trigger_period</td><td>200000</td></tr> <tr><td
+class="paramname">auto_trigger_random_exponent</td><td>0</td></tr> <tr><td
+class="paramname">output_mode</td><td>NDIGO6G12_OUTPUT_MODE_SIGNED32 for
+AppType::AVERAGING, NDIGO6G12_OUTPUT_MODE_SIGNED16 for others</td></tr> <tr><td
+class="paramname">extended_bandwidth</td><td>false</td></tr> <tr><td
+class="paramname">ramp_test_mode</td><td>false</td></tr> <tr><td
+class="paramname">average_configuration.iterations</td><td>0</td></tr> <tr><td
+class="paramname">average_configuration.timeout_threshold</td><td>0</td></tr>
+      <tr><td
+class="paramname">average_configuration.stop_manual</td><td>false</td></tr>
+      <tr><td
+class="paramname">average_configuration.stop_on_overflow</td><td>false</td></tr>
+      <tr><td
+class="paramname">average_configuration.stop_on_timeout</td><td>false</td></tr>
+      <tr><td
+class="paramname">average_configuration.use_saturation</td><td>true</td></tr>
     </table>
   </dd>
 </dl>
@@ -1435,7 +1456,7 @@ ndigo6g12_get_default_configuration(ndigo6g12_device *device,
  * @endlink . This must always be used to initialize the @link initparamsstruct
  * ndigo6g12_init_parameter() @endlink structure. Return values are listed @link
  * defdefinpar here @endlink. \param init is type *ndigo6g12_init_parameters
- * 
+ *
  <dl class="params">
   <dt>Default Values</dt>
   <dd>
@@ -1447,17 +1468,19 @@ ndigo6g12_get_default_configuration(ndigo6g12_device *device,
       <tr><td class="paramname">dma_read_delay</td><td>8192</td></tr>
       <tr><td class="paramname">perf_derating</td><td>0</td></tr>
       <tr><td class="paramname">led_flashing_mode</td><td>1</td></tr>
-      <tr><td class="paramname">adc_channel_mask</td><td>0x0f // all 4 ADC channels enabled by default</td></tr>
-      <tr><td class="paramname">no_reference_clock</td><td>false</td></tr>
-      <tr><td class="paramname">use_external_clock</td><td>false</td></tr>
-      <tr><td class="paramname">use_aux2_clock</td><td>false</td></tr>
-      <tr><td class="paramname">ignore_lane_errors</td><td>false</td></tr>
-      <tr><td class="paramname">ignore_clock_errors</td><td>false</td></tr>
-      <tr><td class="paramname">adc_full_swing</td><td>false</td></tr>
-      <tr><td class="paramname">application_type</td><td>0 // use currently installed type</td></tr>
-      <tr><td class="paramname">force_bitstream_update</td><td>false</td></tr>
-      <tr><td class="paramname">partial_bitstream_size</td><td>0</td></tr>
-      <tr><td class="paramname">partial_bitstream</td><td>nullptr</td></tr>
+      <tr><td class="paramname">adc_channel_mask</td><td>0x0f // all 4 ADC
+channels enabled by default</td></tr> <tr><td
+class="paramname">no_reference_clock</td><td>false</td></tr> <tr><td
+class="paramname">use_external_clock</td><td>false</td></tr> <tr><td
+class="paramname">use_aux2_clock</td><td>false</td></tr> <tr><td
+class="paramname">ignore_lane_errors</td><td>false</td></tr> <tr><td
+class="paramname">ignore_clock_errors</td><td>false</td></tr> <tr><td
+class="paramname">adc_full_swing</td><td>false</td></tr> <tr><td
+class="paramname">application_type</td><td>0 // use currently installed
+type</td></tr> <tr><td
+class="paramname">force_bitstream_update</td><td>false</td></tr> <tr><td
+class="paramname">partial_bitstream_size</td><td>0</td></tr> <tr><td
+class="paramname">partial_bitstream</td><td>nullptr</td></tr>
     </table>
   </dd>
 </dl>
@@ -1480,10 +1503,10 @@ NDIGO6G12_API int ndigo6g12_configure(ndigo6g12_device *device,
  *
  *   With error_code and error_message the user must provide pointers where
  * error information should be written by the driver. The buffer for the error
- * message must contain at least 80 chars. \param *device is a pointer to a struct
- * that receives the internal device reference \param *params is type @link
- * initparamsstruct ndigo6g12_init_parameters @endlink \param *error_code is
- * type int \param **error_message is type char. The buffer for the error
+ * message must contain at least 80 chars. \param *device is a pointer to a
+ * struct that receives the internal device reference \param *params is type
+ * @link initparamsstruct ndigo6g12_init_parameters @endlink \param *error_code
+ * is type int \param **error_message is type char. The buffer for the error
  * message has to contain at least 80 chars.
  */
 NDIGO6G12_API int ndigo6g12_init(ndigo6g12_device *device,
