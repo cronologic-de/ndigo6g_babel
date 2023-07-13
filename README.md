@@ -59,15 +59,9 @@ VCC<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 3.3 |  | V
 The example applications can be build _on Windows_ using the [Clang frontend for LLVM](https://clang.llvm.org/index.html). Easy LLVM installation for Windows is provided by the [Chocolatey project](https://chocolatey.org/): [LLVM Chocolatey package](https://community.chocolatey.org/packages/llvm)
 
 
-### ug_example/ndigo6g12_example.cpp
-Example code to read Ndigo6G-12 6.4 Gsps ADC and TDC data using the driver library.
-#### Windows
-Using `ndigo6g12_driver_64.dll`:
-```
-clang++.exe .\ug_example\ndigo6g12_example.cpp .\ug_example\ndigo6g12_adc_dual.cpp .\ug_example\ndigo6g12_adc_single.cpp .\ug_example\ndigo6g12_adc_averager.cpp .\ug_example\ndigo6g12_adc_quad.cpp .\ug_example\ndigo6g12_tdc.cpp -l .\lib\ndigo6g12_driver_64.lib -I .\include\ -o ndigo_example.exe
-```
-#### Ubuntu
-Using `ndigo6g12_driver.a`:
-```
-g++ ./ug_example/ndigo6g12_example.cpp ./ug_example/ndigo6g12_adc_dual.cpp ./ug_example/ndigo6g12_adc_single.cpp ./ug_example/ndigo6g12_adc_averager.cpp ./ug_example/ndigo6g12_adc_quad.cpp ./ug_example/ndigo6g12_tdc.cpp -I./include -L./lib -l:ndigo6g12_driver.a -o ndigo6g_example
-```
+### Examples
+User Guide Example project and code provided:
+1. [ug_example](./ug_example). Example code to read Ndigo6G-12 6.4 Gsps ADC and TDC data using the driver library.
+
+* It can be built on Windows and Linux.
+* The provided prebuilt linux libraries are tested on Ubuntu/Debian, and might work for other distributions, if they didn't work with you, please contact cronologic support team.
