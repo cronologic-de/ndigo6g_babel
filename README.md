@@ -47,13 +47,13 @@ RH | relative humidity | 20 |   | 75 | %
 ### Power Supply
 Symbol | Parameter | Min | Typical | Max | Units
 --- | --- | --- | --- | --- | ---    
-I<sub>3V3</sub> | PCIe 3,3V rail |  | tbd |  | mA
+I<sub>3V3</sub> | PCIe 3,3V rail |  | 0.42 |  | W
 VCC<sub>3V3</sub> | PCIe 3,3V rail | 3.1 | 3.3 | 3.6 | V
-I<sub>12V</sub> | PCIe 12V rail |  | 2.5 |  | A
+I<sub>12V</sub> | PCIe 12V rail |  | 31 |  | W
 VCC<sub>12V</sub> | PCIe 12V rail | 11.1 | 12 | 12.9 | V
-I<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | tbd |  | mA
+I<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 0 |  | W
 VCC<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 3.3 |  | V
-
+The 12V PCIe power is sourced solely from the power connector.
 
 ## C/C++ Examples
 The example applications can be build _on Windows_ using the [Clang frontend for LLVM](https://clang.llvm.org/index.html). Easy LLVM installation for Windows is provided by the [Chocolatey project](https://chocolatey.org/): [LLVM Chocolatey package](https://community.chocolatey.org/packages/llvm)
