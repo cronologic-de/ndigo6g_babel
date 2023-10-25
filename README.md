@@ -49,7 +49,7 @@ Symbol | Parameter | Min | Typical | Max | Units
 --- | --- | --- | --- | --- | ---    
 I<sub>3V3</sub> | PCIe 3,3V rail |  | 0.42 |  | W
 VCC<sub>3V3</sub> | PCIe 3,3V rail | 3.1 | 3.3 | 3.6 | V
-I<sub>12V</sub> | PCIe 12V rail |  | 31 |  | W
+I<sub>12V</sub> | PCIe 12V rail<sup>1</sup> |  | 31 |  | W
 VCC<sub>12V</sub> | PCIe 12V rail<sup>1</sup> | 11.1 | 12 | 12.9 | V
 I<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 0 |  | W
 VCC<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 3.3 |  | V
