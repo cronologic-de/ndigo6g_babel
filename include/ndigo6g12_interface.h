@@ -313,7 +313,7 @@ typedef struct {
      * 4: four ADC channels @1.6 Gsps
      * 5: averaging mode
      */
-    int application_type;
+    uint32_t application_type;
 
     /*!
      * Update partial bitstream even if application type matches.
@@ -577,6 +577,33 @@ typedef struct {
      */
     char config_flash_signature_secondary[NDIGO6G_FLASH_SIG_LEN];
 } ndigo6g12_static_info;
+/*! \defgroup alertdefs #defines for alerts
+ *	\brief Alert bits from the system monitor
+ */
+/*! \ingroup alertdefs
+ *	\brief FPGA temperature alert (> 70@htmlonly &#176C @endhtmlonly)
+ */
+#define NDIGO6G12_ALERT_FPGA_TEMPERATURE 1
+
+/*! \ingroup alertdefs
+ *	\brief Internal FPGA voltage out of range(< 0.83V or > 0.88V)
+ */
+#define NDIGO6G12_ALERT_VCCINT 2
+
+/*! \ingroup alertdefs
+ *	\brief FPGA auxiliary voltage out of range (< 1.75V or > 1.89V)
+ */
+#define NDIGO6G12_ALERT_VCCAUX 4
+
+/*! \ingroup alertdefs
+ *	\brief FPGA temperature critical (> 80@htmlonly &#176C @endhtmlonly)
+ */
+#define NDIGO6G12_ALERT_FPGA_TEMPERATURE_CRITICAL 8
+
+/*! \ingroup alertdefs
+ *	\brief THS temperature critical (> 140@htmlonly &#176C @endhtmlonly)
+ */
+#define NDIGO6G12_ALERT_THS_TEMPERATURE_CRITICAL 16
 
 typedef struct {
     /*! \brief The number of bytes occupied by the structure
@@ -1587,6 +1614,22 @@ NDIGO6G12_API int ndigo6g12_get_param_info(ndigo6g12_device *device,
  */
 NDIGO6G12_API int ndigo6g12_get_fast_info(ndigo6g12_device *device,
                                           ndigo6g12_fast_info *fast_info);
+
+/*! \defgroup pciefuncts Functions for PCIe information
+ *	\brief reads the PCIe info like correctable and uncorrectable
+ *
+ */
+NDIGO6G12_API int ndigo6g12_get_pcie_info(ndigo6g12_device *device,
+                                          crono_pcie_info *pcie_info);
+
+/*!
+ *	\brief clear pci errors, only useful for PCIE problem debuggin
+ *  flags
+ *  CRONO_PCIE_CORRECTABLE_FLAG clear all correctable errors
+ *  CRONO_PCIE_UNCORRECTABLE_FLAG clear all uncorrectable errors
+ */
+NDIGO6G12_API int ndigo6g12_clear_pcie_errors(ndigo6g12_device *device,
+                                              int flags);
 
 /*! \ingroup runtime
  *   \brief write partial bitstream to Ndigo6G12
