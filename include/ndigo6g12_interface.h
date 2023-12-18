@@ -38,8 +38,6 @@ extern "C" {
 
 //!< The number of TDC input channels
 #define NDIGO6G12_TDC_CHANNEL_COUNT 4
-//!< The number of TDC gates
-#define NDIGO6G12_TDC_GATE_COUNT 4
 //!< The number of timing generator blocks for the TDC inputs.
 #define NDIGO6G12_TDC_TIGER_COUNT 4
 //!< The number of FPGA TDC input channels
@@ -139,6 +137,61 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_SOURCE_AUTO 0x00004000
 // trigger signal active each clock cycle
 #define NDIGO6G12_TRIGGER_SOURCE_ONE 0x00008000
+
+/*! \defgroup packflags Packet and Hit Flags
+ *  \brief Flags of the packet reporting error conditions.
+ *  @{ */
+
+/* ! \brief The trigger unit has shortend the current packet due to full FIFO.
+ */
+#define NDIGO6G12_TDC_PACKET_FLAG_SHORTENED 1
+
+/* ! \brief At least one packet was lost due to full FIFO.
+ */
+#define NDIGO6G12_TDC_PACKET_FLAG_LOST 2
+
+/* ! \brief Packet contains at least one TDC event
+ */
+#define NDIGO6G12_TDC_PACKET_FLAG_CONTAINS_DATA 4
+
+/*! \brief DMA FIFO was full.
+ *
+ *  Might not result in dropped packets.
+ */
+#define NDIGO6G12_TDC_PACKET_FLAG_DMA_FIFO_FULL 16
+/*! \brief Host buffer was full.
+ *
+ *  Might not result in dropped packets.
+ */
+#define NDIGO6G12_TDC_PACKET_FLAG_HOST_BUFFER_FULL 32
+
+/*! \brief At least one preceding event was lost due to full FIFO.
+ */
+#define NDIGO6G12_TDC_HIT_FLAG_LOST 1
+
+/*! \brief Rollover has been lost due to full FIFO.
+ *
+ *  Results in a fatal error.
+ */
+#define NDIGO6G12_TDC_HIT_FLAG_ROLLOVER_LOST 2
+
+/*! \brief Timestamp is a valid TDC hit.
+ */
+#define NDIGO6G12_TDC_HIT_FLAG_VALID 4
+
+/*! \brief Timestamp is a rollover marker. Add
+ * ndigo6g12_param_info::tdc_rollover_period to all subsequent timestamps in the
+ * packet.
+ */
+#define NDIGO6G12_TDC_HIT_FLAG_GROUP_TIME_ROLLOVER 8
+
+/*! \brief TDC hit contains dummy data.
+ *
+ *  Padding data. Can be ignored.
+ */
+#define NDIGO6G12_TDC_HIT_FLAG_DUMMY_DATA 12
+
+/*!@}*/
 
 /*! \ingroup triggerdefs
  *  Index for configuration of the triggers
@@ -426,6 +479,11 @@ typedef struct {
     /*! \brief The total amount of the DMA buffer in bytes
      */
     int64_t total_buffer;
+
+    /*! \brief The number of samples in one clock cycle in the current mode
+     */
+    int samples_per_clock;
+
 } ndigo6g12_param_info;
 
 // bitstream date format: YYYY-MM-DD hh:mm:ss
@@ -576,6 +634,12 @@ typedef struct {
      * Shows the signature of the secondary flash
      */
     char config_flash_signature_secondary[NDIGO6G_FLASH_SIG_LEN];
+
+    /*! \brief Auto trigger clock frequency
+     *  The clock frequency of the auto trigger in Hz
+     *  used for calculating the auto_trigger_period.
+     */
+    double auto_trigger_ref_clock;
 } ndigo6g12_static_info;
 /*! \defgroup alertdefs #defines for alerts
  *	\brief Alert bits from the system monitor
@@ -928,6 +992,15 @@ typedef struct {
      */
     crono_bool_t enable_rand;
 } ndigo6g12_trigger;
+/*! \ingroup ndigotrgblock
+ *	\brief ADC sample fifo depth, is the maximum packet length
+ */
+#define NDIGO6G12_FIFO_DEPTH 8182
+
+/*! \ingroup ndigotrgblock
+ *	\brief maximum @link ndigo6g12_trigger_block precursor @endlink
+ */
+#define NDIGO6G12_MAX_PRECURSOR 28
 
 /*! \ingroup ndigotrgblock
  *   \brief configuration of the trigger block
@@ -956,7 +1029,8 @@ typedef struct {
      */
     int precursor;
 
-    /*! \brief Length in multiples of 5ns.
+    /*! \brief Length in multiples of 5ns. Maximum value is NDIGO6G12_FIFO_DEPTH
+     * minus precursors
      *
      * The total amount of data that is recorded in addition to the trigger
      * window.  Precursor determines how many of these are ahead of the trigger
@@ -1089,16 +1163,8 @@ typedef struct {
     int timeout_threshold;
 } ndigo6g12_averager_configuration;
 
-/*! \ingroup channel
- *   \brief Contains TDC channel settings
- */
-typedef struct {
-    crono_bool_t enable; //!< Enable TDC channel.
-    crono_bool_t rising; //!< Set whether to record rising or falling edges.
-} ndigo6g12_tdc_channel;
-
 /*! \ingroup gating
- *   \brief contains settings of gating block
+ *   \brief contains settings of gating block which are to the speci
  */
 typedef struct {
     //!< activates gating block
@@ -1116,20 +1182,20 @@ typedef struct {
      */
     crono_bool_t retrigger;
 
-    // default is true
-    //!< not implemented
-    crono_bool_t extend;
-
-    /*! \brief Precursor
+    /*! \brief The time from the first input signal seen in the idle state until
+     * the gating output is set.
      *
-     *  Number of 5ns clock cycles before the tiger output goes active
-     *       relative to the trigger signal.
+     * In multiples of 5ns. Start needs to be >=0 and <2^16, start must be set
+     * to a value <=stop.
      */
     int start;
-    /*! \brief postcursor
+
+    /*! \brief The number of samples from leaving the idle state until the
+     * gating output is reset.
      *
-     *   Number of 5ns clock cycles before the tiger output goes inactive
-     *   relative to the trigger signal.
+     * If retriggering is enabled the timer is reset to the value of the start
+     * parameter whenever the input signal is set while waiting to reach the
+     * stop time. In multiples of 5ns. Stop needs to be >=0 and <2^16.
      */
     int stop;
     /*! \brief mask for choosing the trigger source
@@ -1141,60 +1207,76 @@ typedef struct {
     int sources;
 } ndigo6g12_tdc_gating_block;
 
-/*! \ingroup gating
- *   \brief contains settings of gating block
+/*! \ingroup channel
+ *   \brief Contains TDC channel settings
  */
 typedef struct {
-    /*! \brief activates tiger block
+    crono_bool_t enable;    //!< Enable TDC channel.
+    crono_bool_t reserved3; //!< for future extension
+    crono_bool_t reserved2;
+    crono_bool_t reserved1;
+    ndigo6g12_tdc_gating_block gating_block;
+} ndigo6g12_tdc_channel;
+
+/*! \ingroup gating
+ *   \brief contains settings of TiGer block
+ */
+// TiGeR deactivated
+#define NDIGO6G12_TIGER_OFF 0
+// Pulse height approx. 2 V. LEMO only usable as output.
+#define NDIGO6G12_TIGER_OUTPUT 1
+// Pulse height approx. 1 V. LEMO may be used as input with OR function when
+// external pulse rate is low.
+#define NDIGO6G12_TIGER_BIDI 2
+// Bipolar pulse
+#define NDIGO6G12_TIGER_BIPOLAR 3
+// Maximum length of bipolar TiGeR pulses
+#define NDIGO6G12_TIGER_MAX_BIPOLAR_PULSE_LENGTH 15
+
+/*! \ingroup gating
+ *   \brief contains settings of TiGer block
+ */
+typedef struct {
+    /*! \brief Enables the desired mode of operation for the TiGeR.
      *
-     *  TiGer output buffer is tristated if not enabled
+     *  It is of one of the values NDIGO6G12_TIGER_*
      *
-     *  default value: false
+     *  default value: NDIGO6G12_TIGER_OFF
      */
-    crono_bool_t enable;
+    int mode;
     /*! \brief set pulse polarity
      *
-     *   default value: false
+     *  The TiGeR creates a high pulse from start to stop unless negated.
+     *
+     *  default value: false
      */
     crono_bool_t negate;
     /*! \brief enables/disables retrigger setting
      *
-     *   If retriggering is enabled the timer is reset to the value of the start
-     *   parameter, whenever the input signal is set while waiting to reach the
+     *  If retriggering is enabled the timer is reset to the value of the start
+     *  parameter, whenever the input signal is set while waiting to reach the
      * stop time.
      *
      *   default value: false
      */
     crono_bool_t retrigger;
-    /*! \brief if set output buffer is constantly enabled resulting in larger
-     * swing
-     *
-     *   default value: false.
-     */
-    crono_bool_t pulse_mode;
-    /*! /brief enables the pin output
-     *
-     *   enabled by default, TiGer without pin output wouldn't do anything with
-     * current firmware
-     */
-    crono_bool_t enable_output;
     /*! \brief Precursor
      *
-     *   Number of 5ns clock cycles before the tiger output goes active
-     *   relative to the trigger signal.
+     *  Number of 5ns clock cycles before the tiger output goes active
+     *  relative to the trigger signal.
      */
     int start;
     /*! \brief postcursor
      *
-     *   Number of 5ns clock cycles before the tiger output goes inactive
-     *   relative to the trigger signal.
+     *  Number of 5ns clock cycles before the tiger output goes inactive
+     *  relative to the trigger signal.
      */
     int stop;
     /*! \brief mask for choosing the trigger source
      *
-     *   A bit mask with a bit set for all trigger sources that can trigger this
-     * channel. Default is NDIGO6G12_TRIGGER_SOURCE_A. One can choose a from a
-     * source @link deftriggersource here @endlink.
+     *  A bit mask with a bit set for all trigger sources that can trigger this
+     *  channel. Default is NDIGO6G12_TRIGGER_SOURCE_A. One can choose a from a
+     *  source @link deftriggersource here @endlink.
      */
     int sources;
 } ndigo6g12_tdc_tiger_block;
@@ -1211,12 +1293,10 @@ typedef struct {
  * and @link tiger ndigo6g12_tiger_block @endlink
  */
 typedef struct {
-    //!< configuration of the gating blocks
-    ndigo6g12_tdc_gating_block gating_block[NDIGO6G12_TDC_GATE_COUNT];
     //!< configuration of the timing generator blocks
     ndigo6g12_tdc_tiger_block
         tiger_block[NDIGO6G12_TDC_TIGER_COUNT + NDIGO6G12_FPGA_TDC_TIGER_COUNT];
-    //!< configure polaritiy, type and threshold for the TDC channels
+    //!< configure polarity, type and threshold for the TDC channels
     ndigo6g12_tdc_channel channel[NDIGO6G12_TDC_CHANNEL_COUNT];
 
     /*! \brief Configure THS788 calibration.
