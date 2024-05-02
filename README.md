@@ -64,5 +64,5 @@ The example applications can be build _on Windows_ using the [Clang frontend for
 User Guide Example project and code provided:
 1. [ug_example](./ug_example). Example code to read Ndigo6G-12 6.4 Gsps ADC and TDC data using the driver library.
 
-* It can be built on Windows and Linux.
-* The provided prebuilt linux libraries are tested on Ubuntu/Debian, and might work for other distributions, if they didn't work with you, please contact cronologic support team.
+* It can be built on **Windows** and **Linux**.
+* The provided prebuilt Linux libraries are tested on Ubuntu/Debian, and might work for other distributions, if they didn't work with you, please contact the [cronologic support team](https://www.cronologic.de/contact).
