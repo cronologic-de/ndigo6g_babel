@@ -13,7 +13,7 @@ You can download the user guide from the [product web page](https://www.cronolog
     ├── lib/        # C++ library files from driver
     └── ug_example/ # source code: .cpp files
         ├── tools/  # files and scripts of the tools, e.g. building tools (CMake, etc...)
-        └── build/  # (default) compiled outbput for any OS, configuration, platform
+        └── build/  # (recommended) compiled outbput for any OS, configuration, platform
 ```
 
 ---
