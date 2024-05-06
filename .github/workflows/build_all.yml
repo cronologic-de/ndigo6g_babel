@@ -112,4 +112,4 @@ jobs:
       if: ${{needs.Check-UserGuide-Example-Build.outputs.ok_to_proceed != 'N' }}
       run: | 
         g++ ./ug_example/src/ndigo6g12_example.cpp ./ug_example/src/ndigo6g12_adc_dual.cpp ./ug_example/src/ndigo6g12_adc_single.cpp ./ug_example/src/ndigo6g12_adc_averager.cpp ./ug_example/src/ndigo6g12_adc_quad.cpp ./ug_example/src/ndigo6g12_tdc.cpp -I./include -L./lib -l:libndigo6g12_driver.a -o ndigo6g_example
-        ls libndigo6g_example
+        ls ndigo6g_example
