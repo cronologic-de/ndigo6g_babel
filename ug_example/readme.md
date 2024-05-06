@@ -60,12 +60,12 @@ The Target Exectuable name is `ndigo6g12_ugex.exe`.
 ### Build Using `CMake`, for Windows and Linux
 
 Go to tools: `cd ug_example/tools`, then run the following command:
-| Platform          | Configuration | Configur CMake ommand                                                           | Compile & Link Command                            | Output Folder          |
-| ----------------- | ------------- | -------------------------------------------------     | ------------------------------------------------- | ---------------------  |
-| **Windows x86_64**| Release       | `cmake -B ..\build\bfR -A x64`                                                  | `cmake --build ..\build\bfR --config Release`     | `\lib`   |
-| **Windows x86_64**| Debug         | `cmake -B ..\build\bfD -A x64`                                                  | `cmake --build ..\build\bfD --config Debug`       | `\lib`     |
-| **Linux x86_64**  | Release       | `cmake -B ../build/bfR -DCMAKE_BUILD_TYPE=Release`                              | `cmake --build ../build/bfR`                      | `/lib`   |
-| **Linux x86_64**  | Debug         | `cmake -B ../build/bfD -DCMAKE_BUILD_TYPE=Debug`                                | `cmake --build ../build/bfD`                      | `/lib`     |
+| Platform          | Configuration | Configur CMake ommand                            | Compile & Link Command                            | Output Folder |
+| ----------------- | -------- | -------------------------------------------------     | ------------------------------------------------- | ------ |
+| **Windows x86_64**| Release  | `cmake -B ..\build\bfR -A x64`                        | `cmake --build ..\build\bfR --config Release`     | `\lib` |
+| **Windows x86_64**| Debug    | `cmake -B ..\build\bfD -A x64`                        | `cmake --build ..\build\bfD --config Debug`       | `\lib` |
+| **Linux x86_64**  | Release  | `cmake -B ../build/bfR -DCMAKE_BUILD_TYPE=Release`    | `cmake --build ../build/bfR`                      | `/lib` |
+| **Linux x86_64**  | Debug    | `cmake -B ../build/bfD -DCMAKE_BUILD_TYPE=Debug`      | `cmake --build ../build/bfD`                      | `/lib` |
 
 * The default configuration is `Debug` on Windows, and `Release` on Linux.
 * Linux x86 is not supported.
