@@ -59,7 +59,16 @@ IF ( CRONO_GEN_PLATFORM  STREQUAL "windows")
         set_target_properties(ndigo_driver_64 PROPERTIES IMPORTED_IMPLIB 
                 ndigo_driver_64.lib)  
         target_link_libraries(${CRONO_TARGET_NAME} ndigo6g12_driver_64)
+
+        # Copy the generated executable to `/lib` folder
         SET(OUTPUT_EXT ".exe")
+        add_custom_command(TARGET ${CRONO_TARGET_NAME} POST_BUILD 
+                COMMAND "echo" Copying executable file '${CRONO_TARGET_NAME}${OUTPUT_EXT}' 
+                        to '/lib' folder ...
+                COMMAND ${CMAKE_COMMAND} -E copy 
+                        \"${CMAKE_BINARY_DIR}/$<CONFIG>/${CRONO_TARGET_NAME}${OUTPUT_EXT}\" 
+                        \"${CRONO_DEP_PKG_LIB_DIR}\" 
+        )
 
 # Linux-specific Configurations _______________________________________________
 ELSEIF (CRONO_GEN_PLATFORM STREQUAL "linux") 
@@ -69,13 +78,13 @@ ELSEIF (CRONO_GEN_PLATFORM STREQUAL "linux")
 
         # Link to ndigo_driver library 
         target_link_libraries(${CRONO_TARGET_NAME} libndigo6g12_driver.a)
+
+        # Copy the generated executable to `/lib` folder
+        add_custom_target(${CRONO_TARGET_NAME}_CPY ALL 
+            COMMAND "echo" Copying executable file '${CRONO_TARGET_NAME}' to '/lib' folder ...
+            COMMAND ${CMAKE_COMMAND} -E copy 
+                \"${CMAKE_BINARY_DIR}/${CRONO_TARGET_NAME}\" 
+                \"${CRONO_DEP_PKG_LIB_DIR}\" 
+        )
 ENDIF()
 
-# Copy the generated executable to `/lib` folder ______________________________
-add_custom_command(TARGET ${CRONO_TARGET_NAME} POST_BUILD 
-        COMMAND "echo" Copying executable file `${CRONO_TARGET_NAME}${OUTPUT_EXT}` 
-                to `/lib` folder ...
-        COMMAND ${CMAKE_COMMAND} -E copy 
-                \"${CMAKE_BINARY_DIR}/$<CONFIG>/${CRONO_TARGET_NAME}${OUTPUT_EXT}\" 
-                \"${CRONO_DEP_PKG_LIB_DIR}\" 
-)
