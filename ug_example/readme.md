@@ -83,4 +83,6 @@ Go to tools: `cd ug_example/tools`, then run the following command:
 
 **Steps**
 - Run the executable found in the _Output Folder_ from system command
+
+**Notes**
 - For Linux: you might need to use `sudo`.
