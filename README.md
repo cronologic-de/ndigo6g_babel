@@ -59,10 +59,9 @@ VCC<sub>3V3Aux</sub> | PCIe 3,3VAux rail |  | 3.3 |  | V
 ## C/C++ Examples
 The example applications can be build _on Windows_ using the [Clang frontend for LLVM](https://clang.llvm.org/index.html). Easy LLVM installation for Windows is provided by the [Chocolatey project](https://chocolatey.org/): [LLVM Chocolatey package](https://community.chocolatey.org/packages/llvm)
 
+The user guide example is provided in [./ug_example](./ug_example/), which reads the Ndigo6G-12 6.4 Gsps ADC and TDC data using the driver library.
 
-### Examples
-User Guide Example project and code provided:
-1. [ug_example](./ug_example). Example code to read Ndigo6G-12 6.4 Gsps ADC and TDC data using the driver library.
+Follow the instructions within the directory on how to compile and run the example on Windows or Linux.
 
-* It can be built on **Windows** and **Linux**.
-* The provided prebuilt Linux libraries are tested on Ubuntu/Debian, and might work for other distributions, if they didn't work with you, please contact the [cronologic support team](https://www.cronologic.de/contact).
+>**Note**<br>
+>The provided prebuilt Linux libraries are tested on Ubuntu/Debian, and might work for other distributions. If they didn't work with you, please contact the [cronologic support team](https://www.cronologic.de/contact).
