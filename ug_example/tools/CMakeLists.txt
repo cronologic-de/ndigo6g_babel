@@ -33,16 +33,7 @@ include_directories(${CRONO_TARGET_NAME} PRIVATE ${CRONO_DEP_PKG_INC_DIR})
 # Link to xtdc4_driver library ________________________________________________
 set(CRONO_DEP_PKG_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${PROJ_SRC_INDIR}/lib)
 link_directories(${CRONO_DEP_PKG_LIB_DIR})
-
-# Validate that directories exist _____________________________________________
-IF(     NOT EXISTS "${CRONO_DEP_PKG_LIB_DIR}" 
-     OR NOT EXISTS "${CRONO_DEP_PKG_INC_DIR}"
-) 
-        message(FATAL_ERROR 
-                "Crono: Please copy driver installation folder driver to the project root. "
-"Lib: <${CRONO_DEP_PKG_LIB_DIR}>, Include: <${CRONO_DEP_PKG_INC_DIR}>.")
-ENDIF()
-        
+      
 # Add the EXE ytarget  ________________________________________________________
 add_executable(${CRONO_TARGET_NAME} 
         ${SRC_DIR}/ndigo6g12_adc_averager.cpp
@@ -55,19 +46,16 @@ add_executable(${CRONO_TARGET_NAME}
 
 # Windows-specific Configurations _____________________________________________
 IF ( CRONO_GEN_PLATFORM  STREQUAL "windows")
-        add_library(ndigo_driver_64 SHARED IMPORTED GLOBAL)
-        set_target_properties(ndigo_driver_64 PROPERTIES IMPORTED_IMPLIB 
-                ndigo_driver_64.lib)  
+        add_library(ndigo6g12_driver_64 SHARED IMPORTED GLOBAL)
+        set_target_properties(ndigo6g12_driver_64 PROPERTIES IMPORTED_IMPLIB 
+                ndigo6g12_driver_64.lib)  
         target_link_libraries(${CRONO_TARGET_NAME} ndigo6g12_driver_64)
 
-        # Copy the generated executable to `/lib` folder
-        SET(OUTPUT_EXT ".exe")
         add_custom_command(TARGET ${CRONO_TARGET_NAME} POST_BUILD 
-                COMMAND "echo" Copying executable file '${CRONO_TARGET_NAME}${OUTPUT_EXT}' 
-                        to '/lib' folder ...
-                COMMAND ${CMAKE_COMMAND} -E copy 
-                        \"${CMAKE_BINARY_DIR}/$<CONFIG>/${CRONO_TARGET_NAME}${OUTPUT_EXT}\" 
-                        \"${CRONO_DEP_PKG_LIB_DIR}\" 
+                COMMAND "echo" Copying libraries from '/lib' folder to output folder...
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        \"${CRONO_DEP_PKG_LIB_DIR}/ndigo6g12_driver_64.dll\" 
+                        \"${CMAKE_BINARY_DIR}/$<CONFIG>\" 
         )
 
 # Linux-specific Configurations _______________________________________________
@@ -78,13 +66,5 @@ ELSEIF (CRONO_GEN_PLATFORM STREQUAL "linux")
 
         # Link to ndigo_driver library 
         target_link_libraries(${CRONO_TARGET_NAME} libndigo6g12_driver.a)
-
-        # Copy the generated executable to `/lib` folder
-        add_custom_target(${CRONO_TARGET_NAME}_CPY ALL 
-            COMMAND "echo" Copying executable file '${CRONO_TARGET_NAME}' to '/lib' folder ...
-            COMMAND ${CMAKE_COMMAND} -E copy 
-                \"${CMAKE_BINARY_DIR}/${CRONO_TARGET_NAME}\" 
-                \"${CRONO_DEP_PKG_LIB_DIR}\" 
-        )
 ENDIF()
 
