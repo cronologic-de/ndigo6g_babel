@@ -261,8 +261,8 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_SOURCE_TDC2 0x00000400
 #define NDIGO6G12_TRIGGER_SOURCE_TDC3 0x00000800
 
-#define NDIGO6G12_TRIGGER_SOURCE_FPGA0 0x00001000
-#define NDIGO6G12_TRIGGER_SOURCE_FPGA1 0x00002000
+#define NDIGO6G12_TRIGGER_SOURCE_TRG 0x00001000
+#define NDIGO6G12_TRIGGER_SOURCE_GATE 0x00002000
 
 #define NDIGO6G12_TRIGGER_SOURCE_AUTO 0x00004000
 
@@ -270,7 +270,18 @@ extern "C" {
  * @brief Trigger signal is active each clock cycle.
  */
 #define NDIGO6G12_TRIGGER_SOURCE_ONE 0x00008000
-/*!
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_SOURCE_TRG.
+ */
+#define NDIGO6G12_TRIGGER_SOURCE_FPGA0 NDIGO6G12_TRIGGER_SOURCE_TRG
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_SOURCE_GATE.
+ */
+#define NDIGO6G12_TRIGGER_SOURCE_FPGA1 NDIGO6G12_TRIGGER_SOURCE_GATE
+
+ /*!
  * @}
  */
 
@@ -388,11 +399,22 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_TDC1 9
 #define NDIGO6G12_TRIGGER_TDC2 10
 #define NDIGO6G12_TRIGGER_TDC3 11
-#define NDIGO6G12_TRIGGER_FPGA0 12
-#define NDIGO6G12_TRIGGER_FPGA1 13
+#define NDIGO6G12_TRIGGER_TRG 12
+#define NDIGO6G12_TRIGGER_GATE 13
 #define NDIGO6G12_TRIGGER_AUTO 14
 #define NDIGO6G12_TRIGGER_ONE 15
-/*!
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_TRG.
+ */
+#define NDIGO6G12_TRIGGER_FPGA0 NDIGO6G12_TRIGGER_TRG
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_GATE.
+ */
+#define NDIGO6G12_TRIGGER_FPGA1 NDIGO6G12_TRIGGER_GATE
+
+ /*!
  * @}
  */
 
@@ -457,7 +479,7 @@ extern "C" {
 
 /*!
  * @brief   TiGer pulses are bipolar.
- * @details LEMO connectors are only usable as outputs. Not supported for FPGA0 and FPGA1.
+ * @details LEMO connectors are only usable as outputs. Not supported for inputs TRG and GATE.
  */
 #define NDIGO6G12_TIGER_BIPOLAR 3
 
@@ -1656,7 +1678,7 @@ typedef struct {
      * @brief   Set DAC for trigger threshold of the TDC inputs in V.
      * @details Channel assignment:
      *          - 0 to 3: high-resolution TDC, inputs E to H
-     *          - 4 to 5: low-resolution TDC, inputs FPGA0, FPGA1
+     *          - 4 and 5: inputs TRG and GATE
      * @details Set to a value between &minus;1.32&nbsp;V and +2.0&nbsp;V.
      * @details This should be close to 50% of the height of your pulses on
      *          the inputs. Examples for various signaling standards are
