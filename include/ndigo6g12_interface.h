@@ -45,7 +45,7 @@ extern "C" {
 /*! The number of gating blocks. */
 #define NDIGO6G12_GATE_COUNT 4
 
-/*! The number of high and low resolution TDC input channels. */
+/*! The number of high (TDC0-3) and low (TRG, GATE) resolution TDC input channels. */
 #define NDIGO6G12_TDC_CHANNEL_COUNT 6
 
 /*! Bitstream date format: YYYY-MM-DD hh:mm:ss */
@@ -175,15 +175,15 @@ extern "C" {
  * @brief    Defines for @link ndigo6g12_configuration::adc_mode @endlink
  * @{
  */
-#define NDIGO6G12_ADC_MODE_ABCD 0 //!< 4 channel mode at sample rate 1600 Msps
-#define NDIGO6G12_ADC_MODE_AADD 1 //!< 4 channel mode at sample rate 1600 Msps
-#define NDIGO6G12_ADC_MODE_AAAA 2 //!< 4 channel mode at sample rate 1600 Msps
-#define NDIGO6G12_ADC_MODE_DDDD 3 //!< 4 channel mode at sample rate 1600 Msps
-#define NDIGO6G12_ADC_MODE_AD 4   //!< 2 channel mode at sample rate 3200 Msps
-#define NDIGO6G12_ADC_MODE_AA 5   //!< 2 channel mode at sample rate 3200 Msps
-#define NDIGO6G12_ADC_MODE_DD 6   //!< 2 channel mode at sample rate 3200 Msps
-#define NDIGO6G12_ADC_MODE_A 7    //!< 1 channel mode at sample rate 6400 Msps
-#define NDIGO6G12_ADC_MODE_D 8    //!< 1 channel mode at sample rate 6400 Msps
+#define NDIGO6G12_ADC_MODE_ABCD 0 //!< 4-channel mode at 1600 Msps sample rate
+#define NDIGO6G12_ADC_MODE_AADD 1 //!< 4-channel mode at 1600 Msps sample rate
+#define NDIGO6G12_ADC_MODE_AAAA 2 //!< 4-channel mode at 1600 Msps sample rate
+#define NDIGO6G12_ADC_MODE_DDDD 3 //!< 4-channel mode at 1600 Msps sample rate
+#define NDIGO6G12_ADC_MODE_AD 4   //!< 2-channel mode at 3200 Msps sample rate
+#define NDIGO6G12_ADC_MODE_AA 5   //!< 2-channel mode at 3200 Msps sample rate
+#define NDIGO6G12_ADC_MODE_DD 6   //!< 2-channel mode at 3200 Msps sample rate
+#define NDIGO6G12_ADC_MODE_A 7    //!< 1-channel mode at 6400 Msps sample rate
+#define NDIGO6G12_ADC_MODE_D 8    //!< 1-channel mode at 6400 Msps sample rate
 /*!
  * @}
  */
@@ -261,8 +261,8 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_SOURCE_TDC2 0x00000400
 #define NDIGO6G12_TRIGGER_SOURCE_TDC3 0x00000800
 
-#define NDIGO6G12_TRIGGER_SOURCE_FPGA0 0x00001000
-#define NDIGO6G12_TRIGGER_SOURCE_FPGA1 0x00002000
+#define NDIGO6G12_TRIGGER_SOURCE_TRG 0x00001000
+#define NDIGO6G12_TRIGGER_SOURCE_GATE 0x00002000
 
 #define NDIGO6G12_TRIGGER_SOURCE_AUTO 0x00004000
 
@@ -270,7 +270,18 @@ extern "C" {
  * @brief Trigger signal is active each clock cycle.
  */
 #define NDIGO6G12_TRIGGER_SOURCE_ONE 0x00008000
-/*!
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_SOURCE_TRG.
+ */
+#define NDIGO6G12_TRIGGER_SOURCE_FPGA0 NDIGO6G12_TRIGGER_SOURCE_TRG
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_SOURCE_GATE.
+ */
+#define NDIGO6G12_TRIGGER_SOURCE_FPGA1 NDIGO6G12_TRIGGER_SOURCE_GATE
+
+ /*!
  * @}
  */
 
@@ -388,11 +399,22 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_TDC1 9
 #define NDIGO6G12_TRIGGER_TDC2 10
 #define NDIGO6G12_TRIGGER_TDC3 11
-#define NDIGO6G12_TRIGGER_FPGA0 12
-#define NDIGO6G12_TRIGGER_FPGA1 13
+#define NDIGO6G12_TRIGGER_TRG 12
+#define NDIGO6G12_TRIGGER_GATE 13
 #define NDIGO6G12_TRIGGER_AUTO 14
 #define NDIGO6G12_TRIGGER_ONE 15
-/*!
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_TRG.
+ */
+#define NDIGO6G12_TRIGGER_FPGA0 NDIGO6G12_TRIGGER_TRG
+
+ /*!
+ * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_GATE.
+ */
+#define NDIGO6G12_TRIGGER_FPGA1 NDIGO6G12_TRIGGER_GATE
+
+ /*!
  * @}
  */
 
@@ -457,7 +479,7 @@ extern "C" {
 
 /*!
  * @brief   TiGer pulses are bipolar.
- * @details LEMO connectors are only usable as outputs. Not supported for FPGA0 and FPGA1.
+ * @details LEMO connectors are only usable as outputs. Not supported for inputs TRG and GATE.
  */
 #define NDIGO6G12_TIGER_BIPOLAR 3
 
@@ -546,15 +568,25 @@ typedef struct {
 
     /*!
      * @brief   Defines which clock source is used (internal, SMA, AUX2).
-     * @details See @ref clockmodes "NDIGO6G12_CLOCK_SOURCE" defines.
+     * @verbatim embed:rst:leading-asterisk
+     *          Must be one of the following:
+     *          
+     *          .. doxygengroup:: clockmodes
+     *              :content-only:
+     * @endverbatim
      */
     int clock_source;
 
     /*!
      * @brief   Select the application type.
-     * @details See @ref apptypes "NDIGO6G12_APP_TYPE_*"\.
-     * @details Note that @link ndigo6g12_configuration::adc_mode @endlink must match
-     *          the application type chosen here.
+     * @details Note that @link ndigo6g12_configuration::adc_mode @endlink must
+     *          match the application type chosen here.
+     * @verbatim embed:rst:leading-asterisk
+     *          Must be one of the following:
+     *          
+     *          .. doxygengroup:: apptypes
+     *              :content-only:
+     * @endverbatim
      */
     uint32_t application_type;
 
@@ -841,8 +873,8 @@ typedef struct {
 typedef struct {
     /*!
      * @brief   The current state of the device.
-     * @details Should be one of the values
-     *          @ref devicestates "NDIGO6G12_DEVICE_STATE_*"
+     * @details Should be one of the
+     *          @ref devicestates "NDIGO6G12_DEVICE_STATE_*" values.
      */
     int state;
 
@@ -1118,8 +1150,12 @@ typedef struct {
 
     /*!
      * @brief   Error code.
-     * @details The assignments of the error codes can be found
-     *          @link readerrors here @endlink.
+     * @verbatim embed:rst:leading-asterisk
+     *          Is one of the following:
+     *          
+     *          .. doxygengroup:: readerrors
+     *              :content-only:
+     * @endverbatim
      */
     int error_code;
 
@@ -1249,11 +1285,16 @@ typedef struct {
     int sources;
 
     /*!
-     * @brief   A @ref gatedefs "bit mask" with a bit set for all trigger
-     *          gates.
-     * @details Mask which selects the gates that have to be 1 for the trigger
-     *          block to use.
+     * @brief   A bit mask with a bit set for all trigger gates.
+     * @details Mask which selects the gates that have to be open for the
+     *          trigger block to use.
      * @details Default @ref NDIGO6G12_TRIGGER_GATE_NONE\.
+     * @verbatim embed:rst:leading-asterisk
+     *          The following defines can be used to create the bit mask:
+     *          
+     *          .. doxygengroup:: gatedefs
+     *              :content-only:
+     * @endverbatim
      */
     int gates;
 
@@ -1400,9 +1441,13 @@ typedef struct {
 typedef struct {
     /*!
      * @brief   Enables the desired mode of operation for the TiGeR.
-     * @details It is of one of the values @link tigerdefs NDIGO6G12_TIGER_*
-     *          @endlink.
      * @details Default is @link NDIGO6G12_TIGER_OFF @endlink.
+     * @verbatim embed:rst:leading-asterisk
+     *          Must be one of the following:
+     *          
+     *          .. doxygengroup:: tigerdefs
+     *              :content-only:
+     * @endverbatim
      */
     int mode;
 
@@ -1615,10 +1660,10 @@ typedef struct {
  */
 typedef struct {
     /*!
-     * @brief   ADC mode as defined in @ref adcdefs "NDIGO6G12_ADC_MODE_*"\.
+     * @brief   Configure ADC mode.
      * @details The chosen ADC mode has to be supported by the current
      *          @ref apptypes "NDIGO6G12_APP_TYPE"\.
-     * @details For example, if @c NDIGO6G12_APP_TYPE_1CH is used, one
+     * @details For example, if `NDIGO6G12_APP_TYPE_1CH` is used, one
      *          *cannot* choose, e.g.,  `adc_mode = NDIGO6G12_ADC_MODE_AA`,
      *          but one has to either choose `NDIGO6G12_ADC_MODE_A` or
      *          `NDIGO6G12_ADC_MODE_D`.
@@ -1633,7 +1678,13 @@ typedef struct {
      *          .
      * @verbatim embed:rst:leading-asterisk
      *          For more information, see :numref:`Section %s<ADC Modes>`.
+     *          
+     *          Must be one of the following:
+     *          
+     *          .. doxygengroup:: adcdefs
+     *              :content-only:
      * @endverbatim
+     * 
      */
     int adc_mode;
 
@@ -1656,32 +1707,44 @@ typedef struct {
      * @brief   Set DAC for trigger threshold of the TDC inputs in V.
      * @details Channel assignment:
      *          - 0 to 3: high-resolution TDC, inputs E to H
-     *          - 4 to 5: low-resolution TDC, inputs FPGA0, FPGA1
+     *          - 4 and 5: inputs TRG and GATE
+     *          .
      * @details Set to a value between &minus;1.32&nbsp;V and +2.0&nbsp;V.
      * @details This should be close to 50% of the height of your pulses on
      *          the inputs. Examples for various signaling standards are
-     *          defined @link defdcoffset here @endlink. The inputs are
-     *          AC coupled. This means that for pulse inputs the absolute
-     *          voltage is not important. Only the relative pulse amplitude
-     *          causes the input circuits to switch. @c tdc_trigger_offset
-     *          for an input must be set to the relative switching voltage
-     *          for the input standard in use. If the pulses are negative, a
-     *          negative switching threshold must be set and vice versa.
+     *          defined below.
+     *          The inputs are AC coupled. This means that for pulse inputs
+     *          the absolute voltage is not important. Only the relative
+     *          pulse amplitude causes the input circuits to switch.
+     *          @c tdc_trigger_offset for an input must be set to the relative
+     *          switching voltage for the input standard in use. If the pulses
+     *          are negative, a negative switching threshold must be set and
+     *          vice versa.
      * @details Defaults are @ref NDIGO6G12_DC_OFFSET_N_NIM for each TDC
      *          channel.
+     * @verbatim embed:rst:leading-asterisk
+     *          Defines for various signal standards:
+     *          
+     *          .. doxygengroup:: defdcoffset
+     *              :content-only:
+     * @endverbatim
      */
     double tdc_trigger_offsets[NDIGO6G12_TDC_CHANNEL_COUNT];
 
     /*!
      * @brief   Configuration of the external trigger sources.
-     * @details The entries in the array correspond to the definitions
-     *          @link triggerdefs NDIGO6G12_TRIGGER_* @endlink.
+     * @details The entries in the array correspond to the following defines.
      * @details @link ndigo6g12_trigger::threshold @endlink is ignored for
      *          index @link NDIGO6G12_TRIGGER_TDC0 @endlink and above.
      * @details @link ndigo6g12_trigger::edge @endlink and @link
      *          ndigo6g12_trigger::rising @endlink are ignored for indeces
      *          @link NDIGO6G12_TRIGGER_AUTO @endlink and
      *          @link NDIGO6G12_TRIGGER_ONE @endlink.
+     * 
+     * @verbatim embed:rst:leading-asterisk
+     *          .. doxygengroup:: triggerdefs
+     *              :content-only:
+     * @endverbatim
      */
     ndigo6g12_trigger trigger[NDIGO6G12_TRIGGER_COUNT];
 
@@ -1731,13 +1794,21 @@ typedef struct {
     int auto_trigger_random_exponent;
 
     /*!
-     * @brief   Output mode.
-     * @details See @ref outputdefs "NDIGO6G12_OUTPUT_MODE_*".
+     * @brief   Output mode of the ADC data.
      * @details Default value depends on
      *          @ref ndigo6g12_init_parameters::application_type.
      *          - @link NDIGO6G12_APP_TYPE_AVRG @endlink:
      *            @ref NDIGO6G12_OUTPUT_MODE_SIGNED32
      *          - otherwise: @ref NDIGO6G12_OUTPUT_MODE_SIGNED16.
+     *          .
+     * @verbatim embed:rst:leading-asterisk
+     *          Must be one of the following:
+     *          
+     *          .. doxygengroup:: outputdefs
+     *              :content-only:
+     * 
+     *          For more information, see :numref:`Section %s<adc data format>`.
+     * @endverbatim
      */
     int output_mode;
 
@@ -2068,6 +2139,12 @@ NDIGO6G12_API int ndigo6g12_get_pcie_info(ndigo6g12_device *device, crono_pcie_i
  *          - @link CRONO_PCIE_UNCORRECTABLE_FLAG @endlink: clear all
  *            uncorrectable errors
  * @return char array containing the plain text error message.
+ * @verbatim embed:rst:leading-asterisk
+ *          Relevant defines:
+ * 
+ *          .. doxygengroup:: pcieclearflags
+ *              :content-only:
+ * @endverbatim
  */
 NDIGO6G12_API int ndigo6g12_clear_pcie_errors(ndigo6g12_device *device, int flags);
 
