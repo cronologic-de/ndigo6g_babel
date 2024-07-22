@@ -3,8 +3,8 @@
 #include <cmath>
 
 
-// an application that measure the delay between a signal on start (A)
-// to stop (D)
+// an application that measures the delay between a start signal (A) and a 
+// stop signal (D)
 double Ndigo6GAppDual::ProcessADCPacket(crono_packet *pkt) {
 
     double falling_edge_ts = ComputeFallingEdge(pkt);
@@ -54,10 +54,11 @@ void Ndigo6GAppDual::ConfigureADC(ndigo6g12_configuration *config,
 
     // enable channel A
     config->trigger_block[0].enabled = true;
-    // multiples of 16 ADC samples (5 ns recording time)
-    config->trigger_block[0].length = 1;
-    // multiples of 16 ADC samples, gets added to packet length
 
+    // in multiples of 16 ADC samples (5 ns recording time)
+    config->trigger_block[0].length = 1;
+
+    // in multiples of 16 ADC samples, gets added to packet length
     config->trigger_block[0].precursor = PRECURSOR;
 
     // select ADC data as trigger source of the channel
@@ -65,10 +66,11 @@ void Ndigo6GAppDual::ConfigureADC(ndigo6g12_configuration *config,
 
     // enable channel D
     config->trigger_block[3].enabled = true;
-    // multiples of 16 ADC samples (5 ns recording time)
-    config->trigger_block[3].length = 1;
-    // multiples of 16 ADC samples, gets added to packet length
 
+    // in multiples of 16 ADC samples (5 ns recording time)
+    config->trigger_block[3].length = 1;
+
+    // in multiples of 16 ADC samples, gets added to packet length
     config->trigger_block[3].precursor = PRECURSOR;
 
     // select ADC data as trigger source of the channel

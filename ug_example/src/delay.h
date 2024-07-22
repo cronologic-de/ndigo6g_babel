@@ -6,12 +6,12 @@
 
 // this utility class manages the arrival of timestamps for 
 // a number of channels and tries to group them to a start
-// signal on one channels and stop signals on the other channels
+// signal on one channel and stop signals on the other channels
 
 // delay status
 enum DelayStatus { 
     NotEnoughData, // we do not know, if the following signal has already arrived
-    StopsMissing, // some of the stops have to arrived after a maximum wait time
+    StopsMissing,  // some of the stops have arrived after a maximum wait time
     Complete,      // start and all expected stops were processed correctly
     StartMissing 
 };
@@ -21,7 +21,7 @@ class ChannelInfo {
     size_t index;
     int channel;
     std::string name;
-    // contains the timestamps of pulse
+    // contains the timestamps of pulses
     std::deque<double> timestamps;
     bool early;
     bool ok;
@@ -56,14 +56,14 @@ class DelayMeasurement {
     //
     Delays delays;
     size_t startIndex;
+    // maxDelay is the time that two timestamps are considered to be in the
+    // same group, e.g., the maximum delay for a simple cable delay time
     double maxDelay;
     // maxWaitTime is the time to wait after a signal, to know that a following
-    // signal has been received, this allow deciding, if a group is complete
+    // signal has been received; this allows deciding if a group is complete
     double maxWaitTime;
 
   public:
-      // maxDelay is the time that two timestamps are considered to be in the same group
-      // e.g. the maximum delay for a simple cable delay time
     void Init(int startChannel, double maxDelay,
               std::map<int, std::string> channelMap) {
         channels.resize(channelMap.size());
@@ -157,8 +157,8 @@ class DelayMeasurement {
 
             if (channelsOk + channelsTooLate + channelsMissing ==
                 channels.size()) {
-                // best case every stop and start is included or some channels
-                // are missing/ too later
+                // best case, every stop and start is included;
+                // otherwise some channels are missing/too late
                 for (ChannelInfo &ci : channels) {
                     if (ci.ok) {
                         ci.timestamps.pop_front();
@@ -168,9 +168,9 @@ class DelayMeasurement {
                 delays.status = Complete;
             } else if (channelsTooEarly > 0 || !startPresent) {
                 // cut away
-                double cutOffTimestamp = startPresent
-                                             ? startTimestamp - maxDelay
-                                 : latestTimestamp - maxWaitTime;
+                double cutOffTimestamp = startPresent 
+                                            ? startTimestamp - maxDelay
+                                            : latestTimestamp - maxWaitTime;
 
                 bool removed = false;
                 for (ChannelInfo &ci : channels) {
