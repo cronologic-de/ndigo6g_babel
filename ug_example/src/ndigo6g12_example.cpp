@@ -47,8 +47,7 @@ ndigo6g12_device initialize_ndigo6g12(int bufferSize, int boardId,
     // switching of appType is required, if not specified the example will
     // return an error, if the appType does not match the current appType in the
     // firmware 
-    params.firmware_locations =
-        "//diskstation/cronologic/RudolfJ/cronorom/current";
+    params.firmware_locations = ".";
 
     // initialize card
     int errorCode;
