@@ -65,15 +65,15 @@ void Ndigo6GAppAverager::ConfigureADC(ndigo6g12_configuration* config,
 	// averaging data saturates at +/- 2^21 - 1
 	config->output_mode = NDIGO6G12_OUTPUT_MODE_SIGNED32;
 
-	// enable ADC channel A and trigger on the falling edge of FPGA0 input
+	// enable ADC channel A and trigger on the falling edge of TRG input
 	// shift baseline of analog inputs to +350 mV
 	config->analog_offsets[0] = NDIGO6G12_DC_OFFSET_N_NIM * -1;
 
-	// trigger on falling edge of FPGA0 input
-	config->trigger[NDIGO6G12_TRIGGER_FPGA0].edge = true;
-	config->trigger[NDIGO6G12_TRIGGER_FPGA0].rising = false;
+	// trigger on falling edge of TRG input
+	config->trigger[NDIGO6G12_TRIGGER_TRG].edge = true;
+	config->trigger[NDIGO6G12_TRIGGER_TRG].rising = false;
 
-	// set trigger level on FPGA1 input to -350 mV
+	// set trigger level on TRG input to -350 mV
 	config->tdc_trigger_offsets[4] = NDIGO6G12_DC_OFFSET_N_NIM;
 
 	// enable channel
@@ -81,8 +81,8 @@ void Ndigo6GAppAverager::ConfigureADC(ndigo6g12_configuration* config,
 	// multiples of 32 ADC samples (5 ns recording time)
 	config->trigger_block[0].length = 32764;
 
-	// select FPGA0 as trigger source of the channel
-	config->trigger_block[0].sources = NDIGO6G12_TRIGGER_SOURCE_FPGA0;
+	// select TRG as trigger source of the channel
+	config->trigger_block[0].sources = NDIGO6G12_TRIGGER_SOURCE_TRG;
 
 	// configuration of the Averaging features
 	// number of events that are averaged/summed

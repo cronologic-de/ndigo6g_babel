@@ -21,7 +21,8 @@ std::map<int, std::string> requirementsMap = {
         "pulse on channel A and stop pulse on channel D (NIM)"},
     {4, "Quad channel application that measures delay between start "
         "pulse on channel A and stop pulses on channels B-D (NIM)"},
-    {5, "Measure time distance between averaged start on FPGA0 (NIM) and stop on channel A(falling) by summing data of 16 runs,"
+    {5, "Measure time distance between averaged start on TRG (NIM) and stop on "
+        "channel A (falling) by summing data of 16 runs "
         "to increase precision of measurement for signal with low amplitude"}};
 
 Ndigo6GApp *adcApp;
