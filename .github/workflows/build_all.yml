@@ -64,7 +64,7 @@ jobs:
 
   # ___________________________________________________________________________
   #
-    UG_EX-Linux-Build:
+  UG_EX-Linux-Build:
       needs: Check-Build-UG_EX
       runs-on: ubuntu-latest
 
@@ -104,7 +104,7 @@ jobs:
 
   # ___________________________________________________________________________
   #
-    UG_EX-Win-Build:
+  UG_EX-Win-Build:
       needs:
        - Check-Build-UG_EX
        - UG_EX-Linux-Build  # Guarnatee Sequential Build
