@@ -64,13 +64,13 @@ jobs:
 
   # ___________________________________________________________________________
   #
-    UG_EX-Linux-Build:
+  UG_EX-Linux-Build:
       needs: Check-Build-UG_EX
       runs-on: ubuntu-latest
 
       env: 
         TOOLS_SUB_DIR: 'ug_example/tools'
-        CRONO_EXE_NAME: ndigo_ugex
+        CRONO_EXE_NAME: ndigo6g12_ugex
 
       steps:
       - name: echo Suppress Status if Needed
@@ -104,7 +104,7 @@ jobs:
 
   # ___________________________________________________________________________
   #
-    UG_EX-Win-Build:
+  UG_EX-Win-Build:
       needs:
        - Check-Build-UG_EX
        - UG_EX-Linux-Build  # Guarnatee Sequential Build
