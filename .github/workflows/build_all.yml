@@ -70,7 +70,7 @@ jobs:
 
       env: 
         TOOLS_SUB_DIR: 'ug_example/tools'
-        CRONO_EXE_NAME: ndigo_ugex
+        CRONO_EXE_NAME: ndigo6g12_ugex
 
       steps:
       - name: echo Suppress Status if Needed
