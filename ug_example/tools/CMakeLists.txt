@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 set(CRONO_TARGET_NAME "ndigo6g12_ugex")
 project(${CRONO_TARGET_NAME})
-# _____________________________________________________________________________
-# Build Windows/Linux(x86_64) `ndigo_ugex.exe/Linux` executable, 
-# for (Debug/Release) configurations.
-# _____________________________________________________________________________
 
-# General Validations and Configurations ______________________________________
+# _____________________________________________________________________________________________________________________
+# Build Windows/Linux(x86_64) `ndigo6g12_ugex.exe/Linux` executable, 
+# for (Debug/Release) configurations.
+# _____________________________________________________________________________________________________________________
+
+# General Validations and Configurations ______________________________________________________________________________
 # cd indirection from /tools to the project source code, "." if no shift
 set(PROJ_SRC_INDIR ../..)
-set(SRC_DIR ../src)
 
-# Get the platform and architecure ____________________________________________
+# Get the platform and architecure ____________________________________________________________________________________
 # Check supported architecture, and set `CRONO_GEN_ARCH` to `x86_64` for all
 # variations of `x64` platforms, and to `x86` for all variations of `x86` 
 # platforms.
@@ -26,15 +26,17 @@ IF(CMAKE_SYSTEM_PROCESSOR IN_LIST x64_archs)
         set(CRONO_GEN_ARCH "x86_64")
 ENDIF()
 
-# Include directories paths ___________________________________________________
+# Include directories paths ___________________________________________________________________________________________
 set(CRONO_DEP_PKG_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${PROJ_SRC_INDIR}/include)
 include_directories(${CRONO_TARGET_NAME} PRIVATE ${CRONO_DEP_PKG_INC_DIR})
 
-# Link to xtdc4_driver library ________________________________________________
-set(CRONO_DEP_PKG_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${PROJ_SRC_INDIR}/lib)
-link_directories(${CRONO_DEP_PKG_LIB_DIR})
+# Link to ndigo6g12_driver library ____________________________________________________________________________________
+set(CRONO_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${PROJ_SRC_INDIR}/lib)
+set(CRONO_BIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${PROJ_SRC_INDIR}/bin)
+link_directories(${CRONO_LIB_DIR})
       
-# Add the EXE ytarget  ________________________________________________________
+# Add the EXE ytarget  ________________________________________________________________________________________________
+set(SRC_DIR ../src)
 add_executable(${CRONO_TARGET_NAME} 
         ${SRC_DIR}/ndigo6g12_adc_averager.cpp
         ${SRC_DIR}/ndigo6g12_adc_dual.cpp
@@ -44,27 +46,19 @@ add_executable(${CRONO_TARGET_NAME}
         ${SRC_DIR}/ndigo6g12_tdc.cpp
 )
 
-# Windows-specific Configurations _____________________________________________
+set_target_properties(${CRONO_TARGET_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CRONO_BIN_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CRONO_BIN_DIR}
+)
+
+# Windows-specific Configurations _____________________________________________________________________________________
 IF ( CRONO_GEN_PLATFORM  STREQUAL "windows")
-        add_library(ndigo6g12_driver_64 SHARED IMPORTED GLOBAL)
-        set_target_properties(ndigo6g12_driver_64 PROPERTIES IMPORTED_IMPLIB 
-                ndigo6g12_driver_64.lib)  
         target_link_libraries(${CRONO_TARGET_NAME} ndigo6g12_driver_64)
 
-        add_custom_command(TARGET ${CRONO_TARGET_NAME} POST_BUILD 
-                COMMAND "echo" Copying libraries from '/lib' folder to output folder...
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                        \"${CRONO_DEP_PKG_LIB_DIR}/ndigo6g12_driver_64.dll\" 
-                        \"${CMAKE_BINARY_DIR}/$<CONFIG>\" 
-        )
-
-# Linux-specific Configurations _______________________________________________
+        # Linux-specific Configurations _______________________________________________________________________________________
 ELSEIF (CRONO_GEN_PLATFORM STREQUAL "linux") 
-        # Compilation options
         add_compile_options(-fPIC -Wall $<$<CONFIG:Debug>:-g>)
         add_compile_definitions($<$<CONFIG:Debug>:CRONO_DEBUG_ENABLED>)
-
-        # Link to ndigo_driver library 
         target_link_libraries(${CRONO_TARGET_NAME} libndigo6g12_driver.a)
 ENDIF()
 
