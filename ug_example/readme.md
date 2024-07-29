@@ -10,6 +10,7 @@ You can download the user guide from the [product web page](https://www.cronolog
 ```
     .
     ├── include/    # C++ include files from driver
+    ├── bin/        # C++ binary files from driver
     ├── lib/        # C++ library files from driver
     └── ug_example/ # source code: .cpp files
         ├── tools/  # files and scripts of the tools, e.g. building tools (CMake, etc...)
@@ -19,26 +20,24 @@ You can download the user guide from the [product web page](https://www.cronolog
 ---
 
 ## Build the Project
-
-### Overview
 - The project is a `Console` App.
-- The Project can be mainly built using `CMake`, on both Windows and Linux. 
-- `CMake` also can be used on Windows by Microsoft Visual Studio 2019 or later for build and debug, [`CMakeSettings.json`](/ug_example/tools/CMakeSetting.json) is provided to build the project using Visual Studio CMake Tools.
+- The project is built using `CMake`.
+- If you don't have `CMake` installed, please refer to [Installing CMake](https://cmake.org/install/) for instructions. You can check if `CMake` is installed by running `cmake --version`.
+- On **Windows**, you can build the project using either `CMake` directly, or using Visual Studio 2019 (or later), see [Build Using `CMake`](#build-using-cmake) or [Build Using Visual Studio](#build-using-visual-studio), respectively.
+- On **Linux**, you can build the project using `CMake`, see [Build Using `CMake`](#build-using-cmake).
 
-### Prerequisites
+---
 
-##### 1. Install `CMake`
-To check if `CMake` is installed, run `cmake --version`; if not installed, please refer to [Installing CMake](https://cmake.org/install/).
+### Build Using Visual Studio
 
-### Build Using Visual Studio for Windows
-It is mainly done using `CMakeSettings.json` file provided in [`tools` folder](/ug_example/tools/CMakeSettings.json) package, that uses the projects [`CMakeLists.txt`](/ug_example/tools/CMakeLists.tx).
+**Prerequisites**
+- Visual Studio 2019 or later
+- [C++ CMake tools for Windows](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio#installation)
 
-#### Prerequisites
-##### 1. Install Development Tools
-1. `Visual Studio 2019` or later is installed.
-2. In "Visual Studio Installer", under "Desktop development with C++", the option [`C++ CMake tools for Windows`](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio#installation) is installed.
+  You can install them from the _Visual Studio Installer_ under 
+  _Desktop development with C++_.
 
-##### Open the Project 
+**Open and configure the project**
 1. Open Visual Studio.
 2. Select `Open a local folder`.
 3. Select the folder `/ug_example`.
@@ -46,43 +45,45 @@ It is mainly done using `CMakeSettings.json` file provided in [`tools` folder](/
    1. Select `Enable and set source directory` button.
    2. In "Select CMakeLists.txt" Dialog, navigate to the `\ug_example\tools`, and open `CMakeLists.txt`.
 
-##### Compile and Link
+**Compile and Link**
+
 Select `Build -> Build All` from menu, or any standard Visual Studio way to build the project.
 
-#### Project Environments and Configurations
-The Target Exectuable name is `ndigo6g12_ugex.exe`.
-| Configuration     | `CMakeSettings` | `Build root`                     | `CMake generator`     | Output Folder          |
-| ----------------- | --------------- | -------------------------------- | --------------------- | ---------------------  |
-| **x86_64 Debug**  | x64-Debug       | `${projectDir}\..\build\bfvsD`   | Visual Studio 17 2022 Win64 | `\lib`   |
-| **x86_64 Release**| x64-Release     | `${projectDir}\..\build\bfvsR`   | Visual Studio 17 2022 Win64 | `\lib`   |
-* The provided file builds the project using `Visual Studio 2022`, however, you can change `generator` in  `CMakeSettings.json` to any other Visual Studio generator you have on your machine.
+**Project Environments and Configurations**
 
-### Build Using `CMake`, for Windows and Linux
+| Configuration     | `CMakeSettings` | `Build root`                     | `CMake generator`     | 
+| ----------------- | --------------- | -------------------------------- | --------------------- | 
+| **x86_64 Debug**  | x64-Debug       | `${projectDir}\..\build\bfvsD`   | Visual Studio 17 2022 Win64 | 
+| **x86_64 Release**| x64-Release     | `${projectDir}\..\build\bfvsR`   | Visual Studio 17 2022 Win64 | 
 
-Go to tools: `cd ug_example/tools`, then run the following command:
-| Platform          | Configuration | Configur CMake ommand                            | Compile & Link Command                            | Output Folder |
-| ----------------- | -------- | -------------------------------------------------     | ------------------------------------------------- | ------ |
-| **Windows x86_64**| Release  | `cmake -B ..\build\bfR -A x64`                        | `cmake --build ..\build\bfR --config Release`     | `\lib` |
-| **Windows x86_64**| Debug    | `cmake -B ..\build\bfD -A x64`                        | `cmake --build ..\build\bfD --config Debug`       | `\lib` |
-| **Linux x86_64**  | Release  | `cmake -B ../build/bfR -DCMAKE_BUILD_TYPE=Release`    | `cmake --build ../build/bfR`                      | `/lib` |
-| **Linux x86_64**  | Debug    | `cmake -B ../build/bfD -DCMAKE_BUILD_TYPE=Debug`      | `cmake --build ../build/bfD`                      | `/lib` |
+> **Notes**
+> * The provided file builds the project using Visual Studio 2022, however, you can change `generator` in [`CMakeSettings.json`](./tools/CMakeSettings.json) to any other Visual Studio generator you have on your machine.
+> * The output folder is the same for both release and debug builds.
 
-* The default configuration is `Debug` on Windows, and `Release` on Linux.
-* Linux x86 is not supported.
-* The provided `ndigo6g12_driver.a` is built on Debian.
+### Build using `CMake`
+
+In a terminal, navigate to `tools\` and run the following command:
+
+| Platform          | Configuration | Configure CMake command                           | Compile & Link Command                            | 
+| ----------------- | ------------- | ----------------------------------------------    | ------------------------------------------------- | 
+| **Windows x86_64**| Release       | `cmake -B ..\build\bfR -A x64`                    | `cmake --build ..\build\bfR --config Release`     | 
+| **Windows x86_64**| Debug         | `cmake -B ..\build\bfD -A x64`                    | `cmake --build ..\build\bfD --config Debug`       | 
+| **Linux x86_64**  | Release       | `cmake -B ../build/bfR -DCMAKE_BUILD_TYPE=Release`| `cmake --build ../build/bfR`                      | 
+| **Linux x86_64**  | Debug         | `cmake -B ../build/bfD -DCMAKE_BUILD_TYPE=Debug`  | `cmake --build ../build/bfD`                      | 
+
+> **Notes**
+> * The default configuration is `Debug` on Windows, and `Release` on Linux.
+> * The output folder is the same for both release and debug builds.
+> * You can change the build/output directory from `CMakeLists.txt` file.
+> * Linux `x86` is not supported.
 
 ---
 
 ## Run/Debug the Sample
 
-#### Prerequisites
-1. Cronologic Kernel Servie/Module is installed:
-   - Linux: `Cronologic PCI Linux Kernel Module` is installed on the machine. You can build it from [`cronologic_linux_kernel`](https://github.com/cronologic-de/cronologic_linux_kernel) on github.
-   - Windows: `Cronologic Kernel Service` is installed on the machine.
-2. Device is installed properly on the machine.
+### Windows
+In a terminal, navigate to `/bin` and run the executable. Alternatively, if you are using Visual Studio, you can run/debug the program from within Visual Studio.
 
-**Steps**
-- Run the executable found in the _Output Folder_ from system command
-
-**Notes**
-- For Linux: you might need to use `sudo`.
+### Linux
+1. `Cronologic PCI Linux Kernel Module` needs to be installed on your machine. You can build it from [`cronologic_linux_kernel`](https://github.com/cronologic-de/cronologic_linux_kernel) on GitHub.
+2. In a terminal, navigate to the `./bin` and run the executable. `sudo` privileges may be necessary.
