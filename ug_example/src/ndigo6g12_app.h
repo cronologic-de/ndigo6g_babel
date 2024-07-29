@@ -41,14 +41,14 @@ class Ndigo6GApp {
     // called by the main loop on a TDC packet arrival
     virtual void ProcessTDCPacket(crono_packet *pkt);
 
-    // react to an TDC incoming packet called by default implementation of
+    // react to an incoming TDC packet, called by default implementation of
     // ProcessTDCPacket
     virtual void ProcessTDCTimestamp(int tdcChannel, double timestamp) {
         printf("TDC event on channel %d timestamp: %.3f ns\n", tdcChannel,
                timestamp / 1000.0);
     };
 
-    // helper method to find the time stamp of the current packet
+    // helper method to find the timestamp of the current packet
     double ComputePacketTimestamp(volatile crono_packet *pkt) {
         // calculate packet timestamp in picoseconds
         // the precursor time is constant in the modes, but the amount of
@@ -58,15 +58,15 @@ class Ndigo6GApp {
         return packet_ts;
     }
 
-    /* Computes the falling edge in the given data, returns the absolute ps
-    value, -1 if threshold was not passed in the packet. */
+    // Computes the falling edge in the given data, returns the absolute ps
+    // value, and -1 if threshold was not passed in the packet.
     double ComputeFallingEdge(crono_packet *pkt) {
-        // packet length is number of 64 bit words of data
+        // packet length is number of 64-bit words of data
         double packetTs = ComputePacketTimestamp(pkt);
-        // 4 ADC samples are stored in each 64 bit chunk of packet data
+        // 4 ADC samples are stored in each 64-bit chunk of packet data
         uint32_t sampleCount = (pkt->length * 4);
 
-        // ADC data is a signed 16 bit integer
+        // ADC data is a signed 16-bit integer
         int16_t *adc_data = (int16_t *)(pkt->data);
 
         // find first falling edge in ADC data
@@ -98,7 +98,7 @@ static const double MAX_DELAY_PS = 500000.;
 
 class Ndigo6GAppSingle : public Ndigo6GApp {
   private:
-    // last falling edge to compute the difference  to
+    // last falling edge to compute the difference to
     double lastFallingEdgeTs = 0;
 
   public:
@@ -131,7 +131,7 @@ class Ndigo6GAppDual : public Ndigo6GApp {
     virtual void ProcessTDCTimestamp(int tdcChannel, double timestamp);
     virtual void SetParamInfo(ndigo6g12_param_info *pi) {
         Ndigo6GApp::SetParamInfo(pi);
-        // we have to wait for 3 TDC period to make sure, that the TDC data has
+        // we have to wait for 3 TDC periods to make sure that the TDC data has
         // arrived
         delayMeasure.SetMaxWaitTime(pi->tdc_rollover_period * 3.5 *
                                     pi->tdc_period);
@@ -156,7 +156,8 @@ class Ndigo6GAppQuad : public Ndigo6GApp {
 
     virtual  void SetParamInfo(ndigo6g12_param_info *pi) {
         Ndigo6GApp::SetParamInfo( pi);
-        // we have to wait for 3 TDC period to make sure, that the TDC data has arrived
+        // we have to wait for 3 TDC periods to make sure that the TDC data has
+        // arrived
         delayMeasure.SetMaxWaitTime(pi->tdc_rollover_period * 3.5 *
                                     pi->packet_ts_period);
     }
@@ -168,7 +169,7 @@ class Ndigo6GAppQuad : public Ndigo6GApp {
 
 class Ndigo6GAppAverager : public Ndigo6GApp {
   private:
-    // last falling edge to compute the difference  to
+    // last falling edge to compute the difference to
     double lastFallingEdgeTs = 0;
 
   public:

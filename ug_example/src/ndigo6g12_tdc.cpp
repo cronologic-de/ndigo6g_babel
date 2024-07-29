@@ -10,14 +10,16 @@ void Ndigo6GApp::ProcessTDCPacket(crono_packet* pkt) {
 	// calculate packet timestamp in picoseconds
 	packetTs *= pi->packet_ts_period;
 
-	// packet length is number of 64 bit words of data
-	// 2 TDC events are stored in each 64 bit chunk of packet data
+	// packet length is number of 64-bit words of data
+	// 2 TDC events are stored in each 64-bit chunk of packet data
 	uint32_t tdcEventCount = pkt->length * 2;
 
 
 	// event encoding:
 	// Bits 31 downto 8: event timestamp in TDC bins relative to packet
-	// timestamp Bits  7 downto 4: event flags Bits  3 downto 0: channel number
+	// 		             timestamp
+	// Bits 7 downto 4: event flags
+	// Bits 3 downto 0: channel number
 	uint32_t* tdcEventData = (uint32_t*)(pkt->data);
 
 	// each TDC packet covers up to 3 coarse TDC periods
@@ -31,7 +33,7 @@ void Ndigo6GApp::ProcessTDCPacket(crono_packet* pkt) {
 		uint32_t tdcChannel = tdcEventData[i] & 0xf;
 		// event flags
 		uint32_t flags = (tdcEventData[i] >> 4) & 0xf;
-		// 24 bit timestamp
+		// 24-bit timestamp
 		uint32_t event_ts = tdcEventData[i] >> 8;
 
 		// valid input channel?
@@ -71,7 +73,8 @@ void Ndigo6GApp::ConfigureTDC(ndigo6g12_configuration* config) {
 		config->tdc_configuration.channel[i].enable = (tdcChannelMask & (1 << i)) != 0;
 
 		// enable falling edge trigger as input to trigger matrix for selected
-		// TDC channel only required if used as trigger source for Gating, TiGer
+		// TDC channel 
+		// only required if used as trigger source for Gating, TiGer
 		// or ADC trigger blocks
 		config->trigger[NDIGO6G12_TRIGGER_TDC0 + i].edge = true;
 		config->trigger[NDIGO6G12_TRIGGER_TDC0 + i].rising = false;

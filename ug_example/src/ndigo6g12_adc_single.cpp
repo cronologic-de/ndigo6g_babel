@@ -1,7 +1,7 @@
 #include "ndigo6g12_app.h"
 #include <stdio.h>
 
-// a simple application that measure the distance of two packets and computes
+// a simple application that measures the distance of two packets and computes
 // the frequency of the signal
  double Ndigo6GAppSingle::ProcessADCPacket(crono_packet *pkt) {
 
@@ -19,7 +19,7 @@
 }
 
 void Ndigo6GAppSingle::ConfigureADC(ndigo6g12_configuration *config,
-                                       int adcThreshold) {
+                                    int adcThreshold) {
     this->adcThreshold = adcThreshold;
     // single channel mode with 6.4 Gsps
     config->adc_mode = NDIGO6G12_ADC_MODE_A;

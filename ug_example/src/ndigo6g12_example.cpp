@@ -17,11 +17,12 @@ std::map<int, std::string> requirementsMap = {
     {1,
      "Measure time distance between passing of "
         "threshold, calculates the frequency, requires NIM signal on channel A"},
-    {2, "Dual channel application that measures delay between start "
+    {2, "Dual-channel application that measures delay between start "
         "pulse on channel A and stop pulse on channel D (NIM)"},
-    {4, "Quad channel application that measures delay between start "
+    {4, "Quad-channel application that measures delay between start "
         "pulse on channel A and stop pulses on channels B-D (NIM)"},
-    {5, "Measure time distance between averaged start on FPGA0 (NIM) and stop on channel A(falling) by summing data of 16 runs,"
+    {5, "Measure time distance between averaged start on TRG (NIM) and stop on "
+        "channel A (falling) by summing data of 16 runs "
         "to increase precision of measurement for signal with low amplitude"}};
 
 Ndigo6GApp *adcApp;
@@ -44,11 +45,10 @@ ndigo6g12_device initialize_ndigo6g12(int bufferSize, int boardId,
     params.card_index = cardIndex; // which of the Ndigo6G-12 board found in
                                    // the system to be used
     // this specifies the directories or the specific .cronorom if dynamic
-    // switching of appType is required, if not specified the example will
-    // return an error, if the appType does not match the current appType in the
+    // switching of appType is required. If not specified, the example will
+    // return an error if the appType does not match the current appType in the
     // firmware 
-    params.firmware_locations =
-        "//diskstation/cronologic/RudolfJ/cronorom/current";
+    params.firmware_locations = ".";
 
     // initialize card
     int errorCode;
@@ -62,11 +62,11 @@ ndigo6g12_device initialize_ndigo6g12(int bufferSize, int boardId,
         exit(1);
     }
 
-    // check if firmware now supports the chose application type
+    // check if firmware now supports the chosen application type
     ndigo6g12_static_info si;
     ndigo6g12_get_static_info(&device, &si);
     if (si.application_type != appType) {
-        printf("The switch to appType did not work, please make sure that that "
+        printf("The switch to appType did not work, please make sure that "
                "the firmware file is provided");
         ndigo6g12_close(&device);
         exit(1);
@@ -111,11 +111,11 @@ int configure_ndigo6g12(ndigo6g12_device *device, int adcThreshold) {
         return 1;
     }
 
-    //*********************************************************************************************
+    //**************************************************************************
     // configuration for the TDC channels
     adcApp->ConfigureTDC(&config);
 
-    //*********************************************************************************************
+    //**************************************************************************
     // configuration for the ADC channels
     adcApp->ConfigureADC(&config, adcThreshold);
 
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
     // use the first Ndigo6G-12 device found in the system
     const int CARD_INDEX = 0;
 
-    // set board id in all packets to 0
+    // set board ID in all packets to 0
     // can be used to distinguish packets of multiple devices
     const int BOARD_ID = 0;
 
@@ -200,15 +200,17 @@ int main(int argc, char *argv[]) {
            ndigo6g12_get_driver_revision_str());
 
     // create and initialize the device
-    // may fail if the device is already in use by an other process
+    // may fail if the device is already in use by another process
     // or the device driver is not installed
     ndigo6g12_device device =
-        initialize_ndigo6g12(BUFFER_SIZE, BOARD_ID, CARD_INDEX, appType, tdcChannelMask);
+        initialize_ndigo6g12(BUFFER_SIZE, BOARD_ID, CARD_INDEX, appType,
+                             tdcChannelMask);
 
     print_device_information(&device);
 
     // set the configuration required for capturing data
-    // the base line is shifted by +350mV, target is to trigger at the middle of the NIM pulse edge
+    // the base line is shifted by +350mV, as the target is to trigger at the
+    // middle of the NIM pulse edge
     int adcThreshold = 0;
     int status = configure_ndigo6g12(&device, adcThreshold);
     if (status != 0) {
@@ -257,7 +259,7 @@ int main(int argc, char *argv[]) {
 
         } else {
             noDataLastTime = false;
-            // iterate over all packets received with the last read
+            // iterate over all packets received by the last read
             volatile crono_packet *p = readData.first_packet;
             while (p <= readData.last_packet) {
 
@@ -266,7 +268,7 @@ int main(int argc, char *argv[]) {
                     double packet_ts =
                         adcApp->ProcessADCPacket(const_cast<crono_packet *>(p));
                 } else {
-                    // packets with channel number 4 are TDC data
+                    // packets with channel number >= 4 are TDC data
                     adcApp->ProcessTDCPacket(const_cast<crono_packet *>(p));
                 }
 
