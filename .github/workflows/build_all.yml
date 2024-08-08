@@ -13,6 +13,8 @@ name: Build All Projects
 #   Another one is the longer time taken.
 # - Should pull output of the previous job(s), to avoid error: 
 #   `tip of your current branch is behind its remote counterpart`
+# - Doesn't run when triggered by a tag, since all code is built and output is saved
+#   in the repository already with the last `main` update workflow.
 
 on: # workflow_dispatch
   push:
@@ -31,11 +33,36 @@ env:
 jobs:
   # ===========================================================================
   #
+  # If triggered by a new tag then no need to run any job. As outputs saved 
+  # on main are supposed to be latest once built from the latest update.
+  #
+  Check-Trigger:
+    runs-on: ubuntu-latest
+    outputs:
+      is_tag: ${{ steps.check.outputs.is_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check if triggered by a tag
+        id: check
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "is_tag=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_tag=false" >> $GITHUB_OUTPUT
+          fi
+          
+  # ===========================================================================
+  #
   # Upon any change in sub files of ./include, ./lib, ./ug_example, the action 
   # builds the user guide example.
   #
   Check-Build-UG_EX:
     runs-on: ubuntu-latest
+    needs: Check-Trigger
+    if: ${{ needs.Check-Trigger.outputs.is_tag == 'false' }}
+    
     # Map a step output to a job output
     outputs:
       ok_to_proceed: ${{ steps.check.outputs.ok_to_proceed_val }}
@@ -65,9 +92,12 @@ jobs:
   # ___________________________________________________________________________
   #
   UG_EX-Linux-Build:
-      needs: Check-Build-UG_EX
       runs-on: ubuntu-latest
-
+      if: ${{ needs.Check-Trigger.outputs.is_tag == 'false' }}
+      needs: 
+      - Check-Trigger
+      - Check-Build-UG_EX
+  
       env: 
         TOOLS_SUB_DIR: 'ug_example/tools'
         CRONO_EXE_NAME: ndigo6g12_ugex
@@ -105,11 +135,12 @@ jobs:
   # ___________________________________________________________________________
   #
   UG_EX-Win-Build:
-      needs:
-       - Check-Build-UG_EX
-       - UG_EX-Linux-Build  # Guarnatee Sequential Build
-
       runs-on: windows-latest
+      if: ${{ needs.Check-Trigger.outputs.is_tag == 'false' }}
+      needs:
+      - Check-Trigger
+      - Check-Build-UG_EX
+      - UG_EX-Linux-Build  # Guarnatee Sequential Build
 
       env: 
         TOOLS_SUB_DIR: 'ug_example/tools'
