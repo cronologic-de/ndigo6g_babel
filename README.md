@@ -20,7 +20,7 @@ We encourage you to contribute to this repository. By uploading to this reposito
 ![Ndigo6G-12 connections](images/Ndigo6G_connections.png)
 
 ## Ndigo6G-12 Hardware Installation
-![Ndigo6G-12 hardware installation](images/Ndigo6G-12_periphery.png)
+![Ndigo6G-12 hardware installation](images/Ndigo6G_periphery.jpg)
 
 Insert the Ndigo6G-12 in a x8 or x16 PCI Express 3.0 slot and attach a 6-pin GPU power cable to the rear connector. The Ndigo6G-12 does not work when the power connector is missing. The Ndigo6G-12 will work in PCIe slots with less than 8 lanes or confirming to PCIe 1.0 or 2.0 albeit at reduced maximum data transfer rates.
 
