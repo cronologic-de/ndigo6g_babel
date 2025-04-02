@@ -61,13 +61,13 @@ extern "C" {
  * @brief   ADC sample FIFO depth.
  * @details It is the maximum recording length in multiples of 5 ns.
  */
-#define NDIGO6G12_FIFO_DEPTH 16364
+#define NDIGO6G12_FIFO_DEPTH 16374
 /*!
  * @}
  */
 
 /*!
- * @defgroup triggerblockdefs
+ * @defgroup triggerblockdefs Defines for ndigo6g12_trigger_block.
  * @brief    Defines for @link ndigo6g12_trigger_block @endlink.
  * @{
  */
@@ -96,8 +96,8 @@ extern "C" {
 #define NDIGO6G12_CLOCK_SOURCE_SMA 1
 
 /*!
- * Use an external 10&nbsp;MHz clock as reference. The inputs are the bracket
- * LEMO connectors.
+ * Use an external 10&nbsp;MHz clock as reference. The input is the
+ * TRG LEMO connector located on the slot bracket.
  */
 #define NDIGO6G12_CLOCK_SOURCE_AUX2 2
 /*!
@@ -195,7 +195,8 @@ extern "C" {
  */
 
 /*!
- * @brief   Return the native range (0 to 4095).
+ * @brief   Return the native range (0 to 4095) augmented by two ADC control bits per sample.
+ * @details Not supported for user applications.
  */
 #define NDIGO6G12_OUTPUT_MODE_RAW 0
 
@@ -207,10 +208,15 @@ extern "C" {
 
 /*!
  * @brief   Output in signed32 integer format.
- * @details Only applicable for averaging mode.
+ * @details Must be used in (and only in) averaging mode.
  *          The range is &minus;2<sup>31</sup> to 2<sup>31</sup> &minus; 1.
  */
 #define NDIGO6G12_OUTPUT_MODE_SIGNED32 2
+
+/*!
+ * @brief   Return the native range (0 to 4095).
+ */
+#define NDIGO6G12_OUTPUT_MODE_RAW_NO_CB 3
 /*!
  * @}
  */
@@ -271,17 +277,17 @@ extern "C" {
  */
 #define NDIGO6G12_TRIGGER_SOURCE_ONE 0x00008000
 
- /*!
+/*!
  * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_SOURCE_TRG.
  */
 #define NDIGO6G12_TRIGGER_SOURCE_FPGA0 NDIGO6G12_TRIGGER_SOURCE_TRG
 
- /*!
+/*!
  * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_SOURCE_GATE.
  */
 #define NDIGO6G12_TRIGGER_SOURCE_FPGA1 NDIGO6G12_TRIGGER_SOURCE_GATE
 
- /*!
+/*!
  * @}
  */
 
@@ -310,14 +316,18 @@ extern "C" {
 #define NDIGO6G12_TDC_PACKET_FLAG_SHORTENED 8
 
 /*!
- * @brief   DMA FIFO was full.
- * @details This does not necessarily mean that packets were dropped.
+ * @brief   The DMA FIFO was full.
+ * @details Trigger only got lost if a subsequent package has
+ *          @ref crono_packet::flags with a bit weight
+ *          @ref NDIGO6G12_TDC_PACKET_FLAG_LOST set.
  */
 #define NDIGO6G12_TDC_PACKET_FLAG_DMA_FIFO_FULL 16
 
 /*!
- * @brief   Host buffer was full.
- * @details This does not necessarily mean that packets were dropped.
+ * @brief   The host buffer was full.
+ * @details Trigger only got lost if a subsequent package has
+ *          @ref crono_packet::flags with a bit weight
+ *          @ref NDIGO6G12_TDC_PACKET_FLAG_LOST set.
  */
 #define NDIGO6G12_TDC_PACKET_FLAG_HOST_BUFFER_FULL 32
 /*!
@@ -404,17 +414,17 @@ extern "C" {
 #define NDIGO6G12_TRIGGER_AUTO 14
 #define NDIGO6G12_TRIGGER_ONE 15
 
- /*!
+/*!
  * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_TRG.
  */
 #define NDIGO6G12_TRIGGER_FPGA0 NDIGO6G12_TRIGGER_TRG
 
- /*!
+/*!
  * @brief Deprecated. Alias for @ref NDIGO6G12_TRIGGER_GATE.
  */
 #define NDIGO6G12_TRIGGER_FPGA1 NDIGO6G12_TRIGGER_GATE
 
- /*!
+/*!
  * @}
  */
 
@@ -424,7 +434,26 @@ extern "C" {
  *        @endlink.
  * @{
  */
+#define NDIGO6G12_DC_OFFSET_P_NIM +0.35
+#define NDIGO6G12_DC_OFFSET_P_CMOS +1.18
+#define NDIGO6G12_DC_OFFSET_P_LVCMOS_33 +1.18
+#define NDIGO6G12_DC_OFFSET_P_LVCMOS_25 +1.18
+#define NDIGO6G12_DC_OFFSET_P_LVCMOS_18 +0.90
+#define NDIGO6G12_DC_OFFSET_P_TTL +1.18
+#define NDIGO6G12_DC_OFFSET_P_LVTTL_33 +1.18
+#define NDIGO6G12_DC_OFFSET_P_LVTTL_25 +1.18
+#define NDIGO6G12_DC_OFFSET_P_SSTL_3 +1.18
+#define NDIGO6G12_DC_OFFSET_P_SSTL_2 +1.18
 #define NDIGO6G12_DC_OFFSET_N_NIM -0.35
+#define NDIGO6G12_DC_OFFSET_N_CMOS -1.32
+#define NDIGO6G12_DC_OFFSET_N_LVCMOS_33 -1.32
+#define NDIGO6G12_DC_OFFSET_N_LVCMOS_25 -1.25
+#define NDIGO6G12_DC_OFFSET_N_LVCMOS_18 -0.90
+#define NDIGO6G12_DC_OFFSET_N_TTL -1.32
+#define NDIGO6G12_DC_OFFSET_N_LVTTL_33 -1.32
+#define NDIGO6G12_DC_OFFSET_N_LVTTL_25 -1.25
+#define NDIGO6G12_DC_OFFSET_N_SSTL_3 -1.32
+#define NDIGO6G12_DC_OFFSET_N_SSTL_2 -1.25
 /*!
  * @}
  */
@@ -455,36 +484,57 @@ extern "C" {
  */
 
 /*!
- * @defgroup tigerdefs Defines for TiGer blocks
+ * @defgroup tigermodes Defines for TiGer blocks
  * @brief   Defines for @link ndigo6g12_tdc_tiger_block::mode @endlink.
  * @{
  */
 /*!
- * @brief   TiGeR deactivated.
+ * @brief   TiGer deactivated.
  */
 #define NDIGO6G12_TIGER_OFF 0
 
 /*!
  * @brief   Pulse height is approximately 2&nbsp;V.
- * @details LEMO is only usable as output.
+ * @details Connected hardware must not
+ *          drive any signals to the connectors used as outputs, as doing so
+ *          could damage both the Ndigo6G-12 and the external hardware. We
+ *          recommend to only use short pulses to avoid undesirable baseline
+ *          shift due to the AC coupling, but the device does not pose any
+ *          restrictions on the duty cycle. This mode can be used as a
+ *          clock output with a frequency of 75/N&nbsp;MHz (for integer N).
  */
 #define NDIGO6G12_TIGER_OUTPUT 1
 
 /*!
  * @brief   Pulse height is approximately 1&nbsp;V.
- * @details LEMO may be used as input with OR function if external pulse rate
- *          is low.
+ * @details The LEMO connector may be used as input with OR function.
+ *          Use short pulses to keep the probability of collision and the
+ *          effect on the baseline low.
  */
 #define NDIGO6G12_TIGER_BIDI 2
 
 /*!
  * @brief   TiGer pulses are bipolar.
- * @details LEMO connectors are only usable as outputs. Not supported for inputs TRG and GATE.
+ * @details Not supported for inputs TRG and GATE.
+ * @details In this mode, the connector creates bipolar pulses with 1&nbsp;V
+ *          amplitude. The connector can still be used as an input. Pulses
+ *          have no effect on the baseline offset.
+ * @details The TiGer should be configured with `start`= `stop + 1` for
+ *          minimium-width bipolar pulses. The maximum bipolar pulse width
+ *          is @link NDIGO6G12_TIGER_MAX_BIPOLAR_PULSE_LENGTH @endlink.
  */
 #define NDIGO6G12_TIGER_BIPOLAR 3
+/*!
+ * @}
+ */
 
 /*!
- * @brief   Maximum length of bipolar TiGeR pulses.
+ * @defgroup tigerstop Defines for TiGer stop
+ * @brief Defines relevant for @link ndigo6g12_tdc_tiger_block::stop @endlink.
+ * @{
+ */
+/*!
+ * @brief   Maximum length of bipolar TiGer pulses.
  */
 #define NDIGO6G12_TIGER_MAX_BIPOLAR_PULSE_LENGTH 15
 /*!
@@ -547,7 +597,7 @@ typedef struct {
     /*!
      * @brief   The update delay of the writing pointer after a packet has
      *          been send over PCIe.
-     * @details Default is 8192. Do not change.
+     * @details Default is 1000. Do not change.
      */
     int dma_read_delay;
 
@@ -568,12 +618,12 @@ typedef struct {
 
     /*!
      * @brief   Defines which clock source is used (internal, SMA, AUX2).
-     * @verbatim embed:rst:leading-asterisk
+     * @rst
      *          Must be one of the following:
-     *          
+     *
      *          .. doxygengroup:: clockmodes
      *              :content-only:
-     * @endverbatim
+     * @endrst
      */
     int clock_source;
 
@@ -583,7 +633,7 @@ typedef struct {
      *          match the application type chosen here.
      * @verbatim embed:rst:leading-asterisk
      *          Must be one of the following:
-     *          
+     *
      *          .. doxygengroup:: apptypes
      *              :content-only:
      * @endverbatim
@@ -950,17 +1000,17 @@ typedef struct {
     double opamp_5v2;
 
     /*!
-     * @brief   Shows temperature of temp4633_1 in &deg;C.
+     * @brief   Shows temperature of voltage regulartor U3_1 in &deg;C.
      */
     double temp4633_1;
 
     /*!
-     * @brief   Shows temperature of temp4633_2 in &deg;C.
+     * @brief   Shows temperature of voltage regulator U3_2 in &deg;C.
      */
     double temp4633_2;
 
     /*!
-     * @brief   Shows temperature of temp4644 in &deg;C.
+     * @brief   Shows temperature of voltage regulator U4 in &deg;C.
      */
     double temp4644;
 
@@ -970,7 +1020,8 @@ typedef struct {
     double tdc1_temp;
 
     /*!
-     * @brief   Shows voltage for ev12_cmiref power supply in V.
+     * @brief   Shows voltage for differential ADC input common mode voltage
+     *          in V.
      * @details Measured or calibration target
      *          depending on board revision and assembly variant.
      */
@@ -1020,61 +1071,62 @@ typedef struct {
 
     /*!
      * @brief   Shows the synced ADC lanes.
-     * @details Each bit corresponds to one lane
+     * @details Each bit corresponds to one lane. Useful debugging information.
      */
     int adc_lanes_synced;
 
     /*!
      * @brief   Shows the ADC lanes that lost sync.
-     * @details Each bit corresponds to one lane.
+     * @details Each bit corresponds to one lane. Useful debugging information.
      */
     int adc_lanes_lost_sync;
 
     /*!
      * @brief   Shows which ADC lanes have an empty FIFO.
-     * @details Each bit corresponds to one lane.
+     * @details Each bit corresponds to one lane. Useful debugging information.
      */
     int adc_lanes_fifo_empty;
 
     /*!
      * @brief   Shows which ADC lanes have a full FIFO.
-     * @details Each bit corresponds to one lane.
+     * @details Each bit corresponds to one lane. Useful debugging information.
      */
     int adc_lanes_fifo_full;
 
     /*!
      * @brief   Shows which ADC lanes are running
-     * @details Each bit corresponds to one lane.
+     * @details Each bit corresponds to one lane. Useful debugging information.
      */
     int adc_lanes_running;
 
     /*!
      * @brief   Shows which ADC lanes were unable to sync before a timeout
-     * @details Each bit corresponds to one lane.
+     * @details Each bit corresponds to one lane. Useful debugging information.
      */
     int adc_lanes_sync_timeout;
 
     /*!
      * @brief   The number of ADC lane synchronization retries.
-     * @details Default is set to 0.
+     * @details Default is set to 0. Useful debugging information.
      */
     int adc_sync_retry_count;
 
     /*!
      * @brief   The number of ADC strobe synchronization retries.
-     * @details Default is set to 0.
+     * @details Default is set to 0. Useful debugging information.
      */
     int adc_sync_strobe_retry_count;
 
     /*!
      * @brief   16 Bit number showing when the last ADC lane synchronization
      *          was achieved.
+     * @details Useful debugging information.
      */
     int adc_sync_delay_count;
 
     /*!
      * @brief   Shows if the supplied mgt power is sufficient.
-     *          Useful debugging information.
+     * @details Useful debugging information.
      */
     crono_bool_t adc_mgt_power_good;
 
@@ -1152,7 +1204,7 @@ typedef struct {
      * @brief   Error code.
      * @verbatim embed:rst:leading-asterisk
      *          Is one of the following:
-     *          
+     *
      *          .. doxygengroup:: readerrors
      *              :content-only:
      * @endverbatim
@@ -1238,7 +1290,7 @@ typedef struct {
      *          acquired (i.e., within the time frame controlled by
      *          @link length @endlink), the packet is extended by starting a
      *          new postcursor. Otherwise the new trigger is ignored and the
-     *          packet ends after the precursor of the first trigger.
+     *          packet ends after the postcursor of the first trigger.
      */
     crono_bool_t retrigger;
 
@@ -1248,6 +1300,8 @@ typedef struct {
      *          generation stops.
      * @details This value is ignored if `enabled` is `true`.
      * @details Maximum is @link NDIGO6G12_MAX_MULTISHOT @endlink.
+     * @details Note: Up to firmware revision 1.24120, this feature is bugged
+     *          in 4-channel mode while `multi_shot_count > 1`.
      */
     int multi_shot_count;
 
@@ -1291,7 +1345,7 @@ typedef struct {
      * @details Default @ref NDIGO6G12_TRIGGER_GATE_NONE\.
      * @verbatim embed:rst:leading-asterisk
      *          The following defines can be used to create the bit mask:
-     *          
+     *
      *          .. doxygengroup:: gatedefs
      *              :content-only:
      * @endverbatim
@@ -1304,14 +1358,17 @@ typedef struct {
      *          the on-board FIFO before a new packet is recorded after the
      *          FIFO was full, i.e., a certain amount of free space in the
      *          FIFO is demanded before a new packet is written after the FIFO
-     *          was full. As a measure for the packet length the gatelength
-     *          set by the user is used. The on-board algorithm checks the
+     *          was full.
+     *          As a measure for the packet length, the recording window as
+     *          defined by @ref precursor and @ref length is used.
+     * @details The on-board algorithm checks the
      *          free FIFO space only in case the FIFO is full. Therefore, if
-     *          this number is 1.0 or more at least every second packet in the
-     *          DMA buffer is guaranteed to have the full length set by the
-     *          gatelength parameters. In many cases smaller values will also
-     *          result in full length packets. But below a certain value
-     *          multiple packets that are cut off at the end will show up.
+     *          this number is 1.0 or more, at least every second packet in the
+     *          host buffer is guaranteed to have the full length set by the
+     *          @ref precursor and @ref length. In many cases smaller values
+     *          will also result in full length packets. But below a certain
+     *          value multiple packets that are cut off at the end will show up.
+     * @details Default is 0.
      */
     double minimum_free_packets;
 } ndigo6g12_trigger_block;
@@ -1324,6 +1381,9 @@ typedef struct {
  *          reaches the time specified by `stop`.
  * @details What happens in the event that another signal before `stop` is
  *          detected is controlled by `retrigger`.
+ * @rst
+ *          See also :numref:`Section %s<Section Gating Blocks>`.
+ * @endrst
  */
 typedef struct {
     /*!
@@ -1336,12 +1396,8 @@ typedef struct {
 
     /*!
      * @brief   Enable retriggering.
-     * @details If enabled:
-     *          - If the timer surpassed the time corresponding to `start`,
-     *            it is reset to `start`.
-     *          - If the timer did not surpass the time corresponding to
-     *            `start`, it is reset to zero.
-     *          .
+     * @details If enabled and a second trigger event is detected before
+     *          the timer reaches `stop`, the timer is restarted.
      *          Otherwise signals at the input `sources` are ignored
      *          until `stop` is reached.
      * @details Default is `false`.
@@ -1394,14 +1450,10 @@ typedef struct {
 
     /*!
      * @brief   Enable retriggering.
-     * @details If enabled:
-     *          - If the timer surpassed the time corresponding to `start`,
-     *            it is reset to `start`.
-     *          - If the timer did not surpass the time corresponding to
-     *            `start`, it is reset to zero.
-     *          .
-     *          Otherwise signals at the input `sources` are ignored until
-     *          `stop` is reached.
+     * @details If enabled and a second trigger event is detected before
+     *          the timer reaches `stop`, the timer is restarted.
+     *          Otherwise signals at the input `sources` are ignored
+     *          until `stop` is reached.
      * @details Defaults to `false`.
      */
     crono_bool_t retrigger;
@@ -1440,12 +1492,12 @@ typedef struct {
  */
 typedef struct {
     /*!
-     * @brief   Enables the desired mode of operation for the TiGeR.
+     * @brief   Enables the desired mode of operation for the TiGer.
      * @details Default is @link NDIGO6G12_TIGER_OFF @endlink.
      * @verbatim embed:rst:leading-asterisk
      *          Must be one of the following:
-     *          
-     *          .. doxygengroup:: tigerdefs
+     *
+     *          .. doxygengroup:: tigermodes
      *              :content-only:
      * @endverbatim
      */
@@ -1453,7 +1505,7 @@ typedef struct {
 
     /*!
      * @brief   Set pulse polarity.
-     * @details The TiGeR creates a high pulse from `start` to
+     * @details The TiGer creates a high pulse from `start` to
      *          `stop` unless negated.
      * @details Default is `true`.
      */
@@ -1461,14 +1513,10 @@ typedef struct {
 
     /*!
      * @brief   Enable retriggering.
-     * @details If enabled:
-     *          - If the timer surpassed the time corresponding to `start`, it
-     *            is reset to `start`.
-     *          - If the timer did not surpass the time corresponding to
-     *            `start`, it is reset to zero.
-     *          .
-     *          Otherwise signals at the input `sources` are ignored until
-     *          `stop` is reached.
+     * @details If enabled and a second trigger event is detected before
+     *          the timer reaches `stop`, the timer is restarted.
+     *          Otherwise signals at the input `sources` are ignored
+     *          until `stop` is reached.
      * @details Defaults to `false`.
      */
     crono_bool_t retrigger;
@@ -1487,6 +1535,8 @@ typedef struct {
      *          TiGer output is reset.
      * @details In multiples of 5&nbsp;ns. 0 &le; `stop` &lt; 2<sup>16</sup>,
      *          while `stop` &ge; `start`.
+     * @details Note that the maximum length for bipolar pulses is given by
+     *          @link NDIGO6G12_TIGER_MAX_BIPOLAR_PULSE_LENGTH @endlink.
      * @details Default is 1.
      */
     int stop;
@@ -1520,7 +1570,7 @@ typedef struct {
      *          _max_averaging_value_ &minus; _max_ADC_value_
      *          or _averaging_value_ &le; _min_averaging_value_ &minus;
      *          _min_ADC_value_ to prevent overflow.
-     * @details .
+     *
      *          - _max(min)_averaging_value_ is 2097151 (&minus;2097152)
      *          - _max(min)_ADC_value_ is 32768 (&minus;32767)
      *          .
@@ -1641,7 +1691,7 @@ typedef struct {
     crono_bool_t alignment_pin_invert;
 
     /*!
-     * @brief   Default is 12.
+     * @brief   Default is 6.
      */
     int alignment_phase_steps;
 
@@ -1678,13 +1728,13 @@ typedef struct {
      *          .
      * @verbatim embed:rst:leading-asterisk
      *          For more information, see :numref:`Section %s<ADC Modes>`.
-     *          
+     *
      *          Must be one of the following:
-     *          
+     *
      *          .. doxygengroup:: adcdefs
      *              :content-only:
      * @endverbatim
-     * 
+     *
      */
     int adc_mode;
 
@@ -1724,7 +1774,7 @@ typedef struct {
      *          channel.
      * @verbatim embed:rst:leading-asterisk
      *          Defines for various signal standards:
-     *          
+     *
      *          .. doxygengroup:: defdcoffset
      *              :content-only:
      * @endverbatim
@@ -1740,7 +1790,7 @@ typedef struct {
      *          ndigo6g12_trigger::rising @endlink are ignored for indeces
      *          @link NDIGO6G12_TRIGGER_AUTO @endlink and
      *          @link NDIGO6G12_TRIGGER_ONE @endlink.
-     * 
+     *
      * @verbatim embed:rst:leading-asterisk
      *          .. doxygengroup:: triggerdefs
      *              :content-only:
@@ -1755,18 +1805,18 @@ typedef struct {
     ndigo6g12_trigger_block trigger_block[NDIGO6G12_ADC_CHANNEL_COUNT];
 
     /*!
-     * @brief   Configuration of gating blocks
+     * @brief   Configuration of gating blocks.
      * @details Gating blocks are used to filter trigger.
      */
     ndigo6g12_gating_block gating_block[NDIGO6G12_GATE_COUNT];
 
     /*!
-     * @brief   THS788 related config.
+     * @brief   Configuration of TDC channels.
      */
     ndigo6g12_tdc_configuration tdc_configuration;
 
     /*!
-     * @brief   Averager related config.
+     * @brief   Configuration of the Averager.
      */
     ndigo6g12_averager_configuration average_configuration;
 
@@ -1803,10 +1853,10 @@ typedef struct {
      *          .
      * @verbatim embed:rst:leading-asterisk
      *          Must be one of the following:
-     *          
+     *
      *          .. doxygengroup:: outputdefs
      *              :content-only:
-     * 
+     *
      *          For more information, see :numref:`Section %s<adc data format>`.
      * @endverbatim
      */
@@ -1997,7 +2047,7 @@ NDIGO6G12_API int ndigo6g12_get_fast_info(ndigo6g12_device *device, ndigo6g12_fa
  *   - @link ndigo6g12_tdc_configuration::alignment_pin_invert
  *     alignment_pin_invert@endlink = `false`
  *   - @link ndigo6g12_tdc_configuration::alignment_phase_steps
- *     alignment_phase_steps@endlink = `12`
+ *     alignment_phase_steps@endlink = `6`
  *   - @link ndigo6g12_tdc_configuration::send_empty_packets
  *     send_empty_packets@endlink = `false`
  *
@@ -2141,7 +2191,7 @@ NDIGO6G12_API int ndigo6g12_get_pcie_info(ndigo6g12_device *device, crono_pcie_i
  * @return char array containing the plain text error message.
  * @verbatim embed:rst:leading-asterisk
  *          Relevant defines:
- * 
+ *
  *          .. doxygengroup:: pcieclearflags
  *              :content-only:
  * @endverbatim
@@ -2184,6 +2234,9 @@ NDIGO6G12_API int ndigo6g12_manual_trigger(ndigo6g12_device *device, int channel
  * @details Instead of continously triggering on input signals, only trigger
  *          and record a @ref ndigo6g12_trigger_block::multi_shot_count number
  *          of events.
+ * @details Note: Up to firmware revision 1.24120, this feature is bugged in
+ *          4-channel mode while
+ *          @ref ndigo6g12_trigger_block::multi_shot_count >1.
  * @details Requires that @ref ndigo6g12_trigger_block::enabled is `false`.
  * @param[in] device Pointer to the device.
  * @param[in] channel_mask A bit mask that chooses which channels to trigger.
