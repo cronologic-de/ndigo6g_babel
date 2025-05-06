@@ -542,6 +542,19 @@ extern "C" {
  */
 
 /*!
+ * @defgroup avrgdefines Defines for Averager
+ * @brief Defines relevant for @link NDIGO6G12_APP_TYPE_AVRG @endlink.
+ * @{
+ */
+/*!
+ * @brief   Maximum amount of iterations.
+ */
+# define NDIGO6G12_MAX_AVRG_ITERATIONS 4096
+/*!
+ * @}
+ */
+
+/*!
  * @brief   Contains information of the Ndigo6G-12 device in use.
  */
 typedef struct {
