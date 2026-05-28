@@ -13,12 +13,15 @@
 #ifndef NDIGO6G12_INTERFACE_H
 #define NDIGO6G12_INTERFACE_H
 #include "crono_interface.h"
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#pragma warning(disable : 4200)
 #ifdef NDIGO6G12_DRIVER_EXPORTS
 #define NDIGO6G12_API __declspec(dllexport)
 #else
@@ -112,7 +115,7 @@ extern "C" {
  * @{
  */
 /*!
- * @brief Averaging mode.
+ * @brief Averaging mode at 6.4 Gsps.
  * @verbatim embed:rst:leading-asterisk
  *        For more information, see :numref:`Section %s<Averaging Mode>`.
  * @endverbatim
@@ -542,12 +545,59 @@ extern "C" {
  */
 
 /*!
+ * @defgroup avrgdefines Defines for Averager
+ * @brief Defines relevant for @link NDIGO6G12_APP_TYPE_AVRG @endlink.
+ * @{
+ */
+/*!
+ * @brief   Maximum amount of iterations.
+ */
+#define NDIGO6G12_MAX_AVRG_ITERATIONS 4096
+/*!
+ * @}
+ */
+
+/*!
  * @brief   Contains information of the Ndigo6G-12 device in use.
  */
 typedef struct {
     bool is_valid;
     void *ndigo6g12;
 } ndigo6g12_device;
+
+/*!
+ * @brief   Length of the RSA challenge sent by the board.
+ */
+#define NDIGO6G12_RSA_CHALLENGE_LENGTH 512
+
+/*!
+ * @brief   Expected length of the decrypted RSA response.
+ */
+#define NDIGO6G12_RSA_RESPONSE_LENGTH 32
+
+/*!
+ * @brief   Callback function signature for RSA challenge-response.
+ * @details The driver calls this when the Ndigo board requests authentication.
+ *          The hardware generates a random 32-byte secret and encrypts it with
+ *          its public RSA-4096 key, producing a 512-byte challenge. The client 
+ *          application must decrypt this 512-byte challenge using their private key 
+ *          to recover and return the 32-byte secret.
+ *
+ * @param[in]     challenge_data   Pointer to the buffer containing the 512-byte encrypted challenge.
+ * @param[in]     challenge_length Length of the challenge data in bytes (always NDIGO6G12_RSA_CHALLENGE_LENGTH).
+ * @param[out]    signature_buffer Pointer to the buffer where the client application stores the 32-byte decrypted response.
+ * @param[in,out] signature_length On input: size of signature_buffer. On output: actual length of the response stored (must be NDIGO6G12_RSA_RESPONSE_LENGTH).
+ * @param[in]     user_data        Optional user data pointer passed from @ref ndigo6g12_authenticate.
+ *
+ * @return 0 on success, non-zero to abort authentication.
+ */
+typedef int (*ndigo6g12_rsa_challenge_callback)(
+    const uint8_t *challenge_data, 
+    size_t challenge_length, 
+    uint8_t *signature_buffer, 
+    size_t *signature_length, 
+    void *user_data
+);
 
 /*!
  * @brief   Struct for the initialization of the Ndigo6G-12.
@@ -738,7 +788,11 @@ typedef struct {
     uint32_t tdc_rollover_period;
 
     /*!
-     * @brief   The delay of the ADC samples due to pipelining in picoseconds.
+     * @brief   The delay of the ADC samples relative to TDC timestamps in
+     *          picoseconds.
+     *
+     * @details Note: For driver release 2.2.0 with firmware 1.25086, this
+     *          value is bugged.
      */
     double adc_sample_delay;
 
@@ -923,8 +977,12 @@ typedef struct {
 typedef struct {
     /*!
      * @brief   The current state of the device.
-     * @details Should be one of the
-     *          @ref devicestates "NDIGO6G12_DEVICE_STATE_*" values.
+     * @verbatim embed:rst:leading-asterisk
+     *          Is one of the following:
+     *          
+     *          .. doxygengroup:: devicestates
+     *              :content-only:
+     * @endverbatim
      */
     int state;
 
@@ -1034,10 +1092,12 @@ typedef struct {
 
     /*!
      * @brief   Alert bits from temperature sensor and the system monitor.
-     * @details Bit 0 is set if the TDC temperature exceeds 140&deg;C. In this
-     *          case the TDC shut down and the device needs to be
-     *          reinitialized.
-     * @details See @link alertdefs NDIGO6G12_ALERT_* @endlink.
+     * @verbatim embed:rst:leading-asterisk
+     *          Is one of the following:
+     *          
+     *          .. doxygengroup:: alertdefs
+     *              :content-only:
+     * @endverbatim
      */
     int alerts;
 
@@ -1226,15 +1286,22 @@ typedef struct {
      * @details Sets the threshold for the trigger block within the range of
      *          the ADC data. The range depends on
      *          @link ndigo6g12_configuration::output_mode @endlink:
-     *          - @link NDIGO6G12_OUTPUT_MODE_RAW @endlink : 0 to 4096
-     *          - @link NDIGO6G12_OUTPUT_MODE_SIGNED16 @endlink : &minus;32768
+     *          - @link NDIGO6G12_OUTPUT_MODE_RAW @endlink : 0 to 4095
+     *          - @link NDIGO6G12_OUTPUT_MODE_SIGNED16 @endlink and
+     *            @link NDIGO6G12_OUTPUT_MODE_SIGNED32 @endlink : &minus;32768
      *            to 32767
      *          .
-     *          For trigger indices @link triggerdefs NDIGO6G12_TRIGGER_TDC
-     *          @endlink to @link triggerdefs NDIGO6G12_TRIGGER_ONE @endlink
+     *          For trigger indices @link NDIGO6G12_TRIGGER_TDC
+     *          @endlink to @link NDIGO6G12_TRIGGER_ONE @endlink
      *          the threshold is ignored.
      * @details For the TDC channels, the trigger threshold is controlled by
      *          @link ndigo6g12_configuration::tdc_trigger_offsets @endlink.
+     * @rst
+     * .. note:: 
+     * 
+     *     :c:macro:`NDIGO6G12_OUTPUT_MODE_SIGNED32` is only used for
+     *     :c:macro:`NDIGO6G12_APP_TYPE_AVRG`.
+     * @endrst
      */
     short threshold;
 
@@ -2143,6 +2210,25 @@ NDIGO6G12_API int ndigo6g12_init(ndigo6g12_device *device, ndigo6g12_init_parame
                                  const char **error_message);
 
 /*!
+ * @brief   The user is not authorized to access the device (e.g. RSA authentication failed).
+ */
+#define CRONO_NOT_AUTHORIZED 19
+
+/*!
+ * @brief   Authenticates the board to unlock data capturing capabilities.
+ * @details Must be called after a successful ndigo6g12_init(). Older firmware
+ *          versions that do not require authentication will return CRONO_OK immediately.
+ *
+ * @param[in] device    Pointer to the initialized device.
+ * @param[in] callback  The client's function that signs the challenge.
+ * @param[in] user_data Optional pointer passed back to the callback.
+ * @return              CRONO_OK on success, or an error code on failure.
+ */
+NDIGO6G12_API int ndigo6g12_authenticate(ndigo6g12_device *device, 
+                                         ndigo6g12_rsa_challenge_callback callback, 
+                                         void *user_data);
+
+/*!
  * @brief   Finalize the driver for this device.
  * @param[in] device Pointer to the device that should be finalized.
  * @return  See @ref funcreturns "Function return values".
@@ -2161,6 +2247,19 @@ NDIGO6G12_API int ndigo6g12_close(ndigo6g12_device *device);
  * @return  See @ref funcreturns "Function return values".
  */
 NDIGO6G12_API int ndigo6g12_read(ndigo6g12_device *device, ndigo6g12_read_in *in, ndigo6g12_read_out *out);
+
+/*!
+ * @brief   Acknowledge data.
+ *
+ * @details Acknowledge all data up to the packet provided as parameter. This is
+ *          mandatory if @link ndigo6g12_read_in::acknowledge_last_read @endlink
+ *          set to false for calls to @link ndigo6g12_read() @endlink.
+ * @details This feature allows to either free up partial DMA space early if there will
+ *          be no call to @link readfuncts ndigo_read() @endlink anytime soon. It also
+ *          allows to keep data over multiple calls to @link readfuncts ndigo_read
+ *          @endlink to avoid unnecessary copying of data.
+ */
+NDIGO6G12_API int ndigo6g12_acknowledge(ndigo6g12_device *device, crono_packet *packet);
 
 /*!
  * @brief   Gets latest error message of @b device.
@@ -2200,9 +2299,8 @@ NDIGO6G12_API int ndigo6g12_clear_pcie_errors(ndigo6g12_device *device, int flag
 
 /*!
  * @brief   Convert @b state to plain text.
- * @details The device state is stored in
+ * @param[in] state  The device state as stored in
  *          @link ndigo6g12_fast_info::state @endlink.
- * @param[in] state  See @link devicestates NDIGO6G12_DEVICE_STATE_* @endlink
  * @return  char array containing the state as plain text.
  */
 NDIGO6G12_API const char *ndigo6g12_device_state_to_str(int state);
@@ -2243,6 +2341,38 @@ NDIGO6G12_API int ndigo6g12_manual_trigger(ndigo6g12_device *device, int channel
  * @return  See @ref funcreturns "Function return values".
  */
 NDIGO6G12_API int ndigo6g12_single_shot(ndigo6g12_device *device, int channel_mask);
+
+/*! \ingroup initbuffer
+ *	\brief contains buffer information
+ */
+struct ndigo6g12_buffer_info {
+    /*! \brief buffer address
+     */
+    uint64_t *buffer_address;
+
+    /*! \brief size of the buffer
+     */
+    int64_t buffer_size;
+};
+
+/*! \ingroup initfuncts
+ *	\brief buffer information
+ *
+ * this method gets the information about the buffer useful for locking in CUDA to allow to use DMA for copying to GPU
+ */
+NDIGO6G12_API int ndigo6g12_get_buffer_info(ndigo6g12_device *device, ndigo6g12_buffer_info *info);
+
+/*!
+ * @brief   Returns the currently free buffer in bytes or as a percentage
+ * @details Computes the distance between the last read packet and the last written packet by the hardware.
+ * Will miss packets currently being transferred to main memory
+ * @param[in] device Pointer to the device.
+ * @param[in/out] free_bytes_ptr Pointer to a variable to receive the number of free bytes, can be nullptr
+ * @param[in/out] free_percentages_ptr Pointer to a variable to receive the percentages of the buffer that is free, can
+ * be nullptr
+ * @return  See @ref funcreturns "Function return values".
+ */
+NDIGO6G12_API int ndigo6g12_get_free_buffer(ndigo6g12_device *device, uint64_t *free_bytes, double *free_percentage);
 
 #ifdef __cplusplus
 }
