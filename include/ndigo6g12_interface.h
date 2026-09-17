@@ -166,7 +166,7 @@ extern "C" {
 #define NDIGO6G12_ALERT_FPGA_TEMPERATURE_CRITICAL 8
 
 /*!
- * @brief THS temperature critical (>&nbsp;140&deg;C)
+ * @brief TDC-Chip temperature critical (>&nbsp;140&deg;C)
  */
 #define NDIGO6G12_ALERT_THS_TEMPERATURE_CRITICAL 16
 /*!
@@ -523,7 +523,7 @@ extern "C" {
  *          amplitude. The connector can still be used as an input. Pulses
  *          have no effect on the baseline offset.
  * @details The TiGer should be configured with `start`= `stop + 1` for
- *          minimium-width bipolar pulses. The maximum bipolar pulse width
+ *          minimum-width bipolar pulses. The maximum bipolar pulse width
  *          is @link NDIGO6G12_TIGER_MAX_BIPOLAR_PULSE_LENGTH @endlink.
  */
 #define NDIGO6G12_TIGER_BIPOLAR 3
@@ -579,25 +579,22 @@ typedef struct {
  * @brief   Callback function signature for RSA challenge-response.
  * @details The driver calls this when the Ndigo board requests authentication.
  *          The hardware generates a random 32-byte secret and encrypts it with
- *          its public RSA-4096 key, producing a 512-byte challenge. The client 
- *          application must decrypt this 512-byte challenge using their private key 
+ *          its public RSA-4096 key, producing a 512-byte challenge. The client
+ *          application must decrypt this 512-byte challenge using their private key
  *          to recover and return the 32-byte secret.
  *
  * @param[in]     challenge_data   Pointer to the buffer containing the 512-byte encrypted challenge.
  * @param[in]     challenge_length Length of the challenge data in bytes (always NDIGO6G12_RSA_CHALLENGE_LENGTH).
- * @param[out]    signature_buffer Pointer to the buffer where the client application stores the 32-byte decrypted response.
- * @param[in,out] signature_length On input: size of signature_buffer. On output: actual length of the response stored (must be NDIGO6G12_RSA_RESPONSE_LENGTH).
+ * @param[out]    signature_buffer Pointer to the buffer where the client application stores the 32-byte decrypted
+ * response.
+ * @param[in,out] signature_length On input: size of signature_buffer. On output: actual length of the response stored
+ * (must be NDIGO6G12_RSA_RESPONSE_LENGTH).
  * @param[in]     user_data        Optional user data pointer passed from @ref ndigo6g12_authenticate.
  *
  * @return 0 on success, non-zero to abort authentication.
  */
-typedef int (*ndigo6g12_rsa_challenge_callback)(
-    const uint8_t *challenge_data, 
-    size_t challenge_length, 
-    uint8_t *signature_buffer, 
-    size_t *signature_length, 
-    void *user_data
-);
+typedef int (*ndigo6g12_rsa_challenge_callback)(const uint8_t *challenge_data, size_t challenge_length,
+                                                uint8_t *signature_buffer, size_t *signature_length, void *user_data);
 
 /*!
  * @brief   Struct for the initialization of the Ndigo6G-12.
@@ -929,7 +926,7 @@ typedef struct {
     int fw_type;
 
     /*!
-     * @brief   Trenz serial number.
+     * @brief   Serial number of the PCB.
      */
     int pcb_serial;
 
@@ -979,7 +976,7 @@ typedef struct {
      * @brief   The current state of the device.
      * @verbatim embed:rst:leading-asterisk
      *          Is one of the following:
-     *          
+     *
      *          .. doxygengroup:: devicestates
      *              :content-only:
      * @endverbatim
@@ -1004,7 +1001,7 @@ typedef struct {
     double fpga_vccint;
 
     /*!
-     * @brief   Auxillary Voltage of the FPGA in V.
+     * @brief   Auxiliary Voltage of the FPGA in V.
      *          Useful debugging information.
      */
     double fpga_vccaux;
@@ -1058,7 +1055,7 @@ typedef struct {
     double opamp_5v2;
 
     /*!
-     * @brief   Shows temperature of voltage regulartor U3_1 in &deg;C.
+     * @brief   Shows temperature of voltage regulator U3_1 in &deg;C.
      */
     double temp4633_1;
 
@@ -1094,7 +1091,7 @@ typedef struct {
      * @brief   Alert bits from temperature sensor and the system monitor.
      * @verbatim embed:rst:leading-asterisk
      *          Is one of the following:
-     *          
+     *
      *          .. doxygengroup:: alertdefs
      *              :content-only:
      * @endverbatim
@@ -1279,6 +1276,7 @@ typedef struct {
 
 /*!
  * @brief   Structure that contains trigger settings.
+ * @details Used for @link ndigo6g12_configuration::trigger @endlink.
  */
 typedef struct {
     /*!
@@ -1291,14 +1289,14 @@ typedef struct {
      *            @link NDIGO6G12_OUTPUT_MODE_SIGNED32 @endlink : &minus;32768
      *            to 32767
      *          .
-     *          For trigger indices @link NDIGO6G12_TRIGGER_TDC
+     *          For trigger indices @link NDIGO6G12_TRIGGER_TDC0
      *          @endlink to @link NDIGO6G12_TRIGGER_ONE @endlink
      *          the threshold is ignored.
      * @details For the TDC channels, the trigger threshold is controlled by
      *          @link ndigo6g12_configuration::tdc_trigger_offsets @endlink.
      * @rst
-     * .. note:: 
-     * 
+     * .. note::
+     *
      *     :c:macro:`NDIGO6G12_OUTPUT_MODE_SIGNED32` is only used for
      *     :c:macro:`NDIGO6G12_APP_TYPE_AVRG`.
      * @endrst
@@ -1311,7 +1309,7 @@ typedef struct {
      *          and @link NDIGO6G12_TRIGGER_ONE @endlink this is ignored.
      *          - `false`: Use a level trigger. The level trigger triggers as
      *            long as the signal is above or below (depending on `rising`)
-     *            the set threshold. Followingly, the trigger gives the sign
+     *            the set threshold. Following, the trigger gives the sign
      *            of the signal in reference to the threshold.
      *          - `true`: Use an edge trigger. The edge trigger triggers as
      *            soon as its set threshold is crossed by the signal. Thus,
@@ -1344,6 +1342,7 @@ typedef struct {
 
 /*!
  * @brief   Configuration of the trigger block.
+ * @details Used for @link ndigo6g12_configuration::trigger_block @endlink.
  */
 typedef struct {
     /*!
@@ -1442,6 +1441,7 @@ typedef struct {
 
 /*!
  * @brief   Contains settings of the gating block.
+ * @details Used for @link ndigo6g12_configuration::gating_block @endlink.
  * @details After a signal at one of the `sources` is detected, a timer starts
  *          running. Once the timer reaches the value specified by `start`, a
  *          gate is opened (or closed, depending on `negate`) until the timer
@@ -1501,7 +1501,8 @@ typedef struct {
 
 /*!
  * @brief   Contains settings of the gating blocks specifically for the TDCs.
- * @details The functionality is similiar to @ref ndigo6g12_gating_block.
+ * @details Used for @link ndigo6g12_tdc_channel::gating_block @endlink.
+ * @details The functionality is similar to @ref ndigo6g12_gating_block.
  */
 typedef struct {
     /*!
@@ -1555,7 +1556,8 @@ typedef struct {
 
 /*!
  * @brief   Contains settings of TiGer block.
- * @details The configuration is similiar to @ref ndigo6g12_gating_block.
+ * @details Used for @ref ndigo6g12_tdc_channel::tiger_block.
+ * @details The configuration is similar to @ref ndigo6g12_gating_block.
  */
 typedef struct {
     /*!
@@ -1620,6 +1622,7 @@ typedef struct {
 
 /*!
  * @brief Contains averaging settings.
+ * @details Used for @link ndigo6g12_configuration::average_configuration @endlink.
  */
 typedef struct {
     /*!
@@ -1654,8 +1657,7 @@ typedef struct {
     crono_bool_t stop_manual;
 
     /*!
-     * @brief   Determines if saturation arithmetic is used by the averager.
-     * @details .
+     * @details Determines if saturation arithmetic is used by the averager.
      *          - `true`: Instead of _averaging_value_ over(under)flowing once
      *            _max(min)_averaging_value_ is reached, the maximum (minimum)
      *            value is kept.
@@ -1688,6 +1690,7 @@ typedef struct {
 
 /*!
  * @brief   Contains TDC channel settings
+ * @details Used for @ref ndigo6g12_tdc_configuration::channel.
  */
 typedef struct {
     /*!
@@ -1724,6 +1727,7 @@ typedef struct {
 
 /*!
  * @brief   Contains configuration information of the TDC channels.
+ * @details Used for @link ndigo6g12_configuration::tdc_configuration @endlink.
  */
 typedef struct {
     /*!
@@ -1732,10 +1736,9 @@ typedef struct {
     ndigo6g12_tdc_channel channel[NDIGO6G12_TDC_CHANNEL_COUNT];
 
     /*!
-     * @brief   Configure THS788 calibration.
-     * @details .
-     *          - `true`: Skip THS788 calibration.
-     *          - `false`: Do THS788 calibration (default).
+     * @details Configure TDC-chip calibration.
+     *          - `true`: Skip TDC-chip calibration.
+     *          - `false`: Do TDC-chip calibration (default).
      *          .
      *          Default is `false`.
      */
@@ -1967,6 +1970,43 @@ typedef struct {
 } ndigo6g12_configuration;
 
 /*!
+ * @brief   Structure that contains the subset of @link ndigo6g12_configuration
+ *          @endlink values that may be changed while the device is capturing.
+ * @details This structure is used in conjunction with
+ *          @ref ndigo6g12_fast_configure() and
+ *          @ref ndigo6g12_get_current_fast_configuration(). It contains only
+ *          the configuration values whose application is safe to perform during
+ *          an active capture (register writes or DAC/SPI updates that do not
+ *          disrupt the running data path).
+ */
+typedef struct {
+    /*!
+     * @copydoc ndigo6g12_configuration::analog_offsets
+     */
+    double analog_offsets[NDIGO6G12_ADC_CHANNEL_COUNT];
+
+    /*!
+     * @copydoc ndigo6g12_configuration::tdc_trigger_offsets
+     */
+    double tdc_trigger_offsets[NDIGO6G12_TDC_CHANNEL_COUNT];
+
+    /*!
+     * @copydoc ndigo6g12_configuration::trigger
+     */
+    ndigo6g12_trigger trigger[NDIGO6G12_TRIGGER_COUNT];
+
+    /*!
+     * @copydoc ndigo6g12_configuration::trigger_block
+     */
+    ndigo6g12_trigger_block trigger_block[NDIGO6G12_ADC_CHANNEL_COUNT];
+
+    /*!
+     * @copydoc ndigo6g12_configuration::gating_block
+     */
+    ndigo6g12_gating_block gating_block[NDIGO6G12_GATE_COUNT];
+} ndigo6g12_fast_configuration;
+
+/*!
  * @brief   Get the driver version in integer format.
  * @return  The driver version in the same format as
  *          @link ndigo6g12_static_info::driver_revision @endlink.
@@ -2150,12 +2190,47 @@ NDIGO6G12_API int ndigo6g12_get_default_configuration(ndigo6g12_device *device, 
 NDIGO6G12_API int ndigo6g12_configure(ndigo6g12_device *device, ndigo6g12_configuration *config);
 
 /*!
+ * @brief   Copies the currently applied fast configuration values into the
+ *          specified config pointer.
+ * @details The returned values reflect the state stored in
+ *          @link ndigo6g12_configure @endlink and any subsequent
+ *          @link ndigo6g12_fast_configure @endlink calls. Use this to obtain a
+ *          starting point before modifying individual fields and passing the
+ *          structure to @ref ndigo6g12_fast_configure().
+ * @param[in] device Pointer to the device from which to get the information.
+ * @param[out] config Pointer to a structure in which to store the current fast
+ *          configuration values.
+ * @return  See @ref funcreturns "Function return values".
+ */
+NDIGO6G12_API int ndigo6g12_get_current_fast_configuration(ndigo6g12_device *device,
+                                                           ndigo6g12_fast_configuration *config);
+
+/*!
+ * @brief   Applies a subset of configuration values that may be changed while
+ *          the device is capturing.
+ * @details Only the fields contained in @link ndigo6g12_fast_configuration
+ *          @endlink are applied. The method computes a delta against the
+ *          currently applied configuration and writes only the changed values
+ *          to the hardware, then commits the new values so that subsequent
+ *          calls to @link ndigo6g12_get_current_fast_configuration @endlink and
+ *          stop/start capture cycles reflect the updated settings.
+ * @details The device must have been configured at least once via
+ *          @link ndigo6g12_configure @endlink. This function may be called in
+ *          the @link ndigo6g12_fast_info::state @endlink states CONFIGURED,
+ *          CAPTURING, and PAUSED.
+ * @param[in] device Pointer to the device to configure.
+ * @param[in] config Pointer to the fast configuration structure.
+ * @return  See @ref funcreturns "Function return values".
+ */
+NDIGO6G12_API int ndigo6g12_fast_configure(ndigo6g12_device *device, ndigo6g12_fast_configuration *config);
+
+/*!
  * @ingroup initfuncts
  * @brief   Sets up the standard parameters.
  * @details Gets a set of default parameters for @link
  *          ndigo6g12_init() @endlink. This must always be used to
  *          initialize the @ref ndigo6g12_init_parameters structure.
- * @details For convinience, the macro
+ * @details For convenience, the macro
  *          @ref ndigo6g12_get_default_init_parameters is provided, which
  *          automatically sets the correct `client_api_version`.
  * @details Default values:
@@ -2224,8 +2299,7 @@ NDIGO6G12_API int ndigo6g12_init(ndigo6g12_device *device, ndigo6g12_init_parame
  * @param[in] user_data Optional pointer passed back to the callback.
  * @return              CRONO_OK on success, or an error code on failure.
  */
-NDIGO6G12_API int ndigo6g12_authenticate(ndigo6g12_device *device, 
-                                         ndigo6g12_rsa_challenge_callback callback, 
+NDIGO6G12_API int ndigo6g12_authenticate(ndigo6g12_device *device, ndigo6g12_rsa_challenge_callback callback,
                                          void *user_data);
 
 /*!
@@ -2255,8 +2329,8 @@ NDIGO6G12_API int ndigo6g12_read(ndigo6g12_device *device, ndigo6g12_read_in *in
  *          mandatory if @link ndigo6g12_read_in::acknowledge_last_read @endlink
  *          set to false for calls to @link ndigo6g12_read() @endlink.
  * @details This feature allows to either free up partial DMA space early if there will
- *          be no call to @link readfuncts ndigo_read() @endlink anytime soon. It also
- *          allows to keep data over multiple calls to @link readfuncts ndigo_read
+ *          be no call to @link ndigo6g12_read() @endlink anytime soon. It also
+ *          allows to keep data over multiple calls to @link ndigo6g12_read()
  *          @endlink to avoid unnecessary copying of data.
  */
 NDIGO6G12_API int ndigo6g12_acknowledge(ndigo6g12_device *device, crono_packet *packet);
@@ -2329,7 +2403,7 @@ NDIGO6G12_API int ndigo6g12_manual_trigger(ndigo6g12_device *device, int channel
 
 /*!
  * @brief   Enables single-shot recording of the ADC channels.
- * @details Instead of continously triggering on input signals, only trigger
+ * @details Instead of continuously triggering on input signals, only trigger
  *          and record a @ref ndigo6g12_trigger_block::multi_shot_count number
  *          of events.
  * @details Note: Up to firmware revision 1.24120, this feature is bugged in
@@ -2342,34 +2416,42 @@ NDIGO6G12_API int ndigo6g12_manual_trigger(ndigo6g12_device *device, int channel
  */
 NDIGO6G12_API int ndigo6g12_single_shot(ndigo6g12_device *device, int channel_mask);
 
-/*! \ingroup initbuffer
- *	\brief contains buffer information
+/*!
+ * @brief Contains buffer information.
  */
 struct ndigo6g12_buffer_info {
-    /*! \brief buffer address
+    /*!
+     * @brief Buffer address.
      */
     uint64_t *buffer_address;
 
-    /*! \brief size of the buffer
+    /*!
+     * @brief Size of the buffer in bytes.
      */
     int64_t buffer_size;
 };
 
-/*! \ingroup initfuncts
- *	\brief buffer information
- *
- * this method gets the information about the buffer useful for locking in CUDA to allow to use DMA for copying to GPU
+/*!
+ * @brief   Retrieve buffer information.
+ * @details This method gets the information about the buffer.
+ * @details This is useful for locking in CUDA, allowing to use DMA for
+ *          copying to the GPU.
+ * @param[in] device Pointer to the device.
+ * @param[out] info Pointer to the structure in which to store the information.
+ * @return  See @ref funcreturns "Function return values".
  */
 NDIGO6G12_API int ndigo6g12_get_buffer_info(ndigo6g12_device *device, ndigo6g12_buffer_info *info);
 
 /*!
- * @brief   Returns the currently free buffer in bytes or as a percentage
- * @details Computes the distance between the last read packet and the last written packet by the hardware.
- * Will miss packets currently being transferred to main memory
+ * @brief   Returns the currently free buffer in bytes or as a percentage.
+ * @details Computes the distance between the last read packet and the last written
+ *          packet by the hardware.
+ * @details It will miss packets currently being transferred to the main memory.
  * @param[in] device Pointer to the device.
- * @param[in/out] free_bytes_ptr Pointer to a variable to receive the number of free bytes, can be nullptr
- * @param[in/out] free_percentages_ptr Pointer to a variable to receive the percentages of the buffer that is free, can
- * be nullptr
+ * @param[inout] free_bytes Pointer to a variable to receive the number of
+ *          free bytes. Can be nullptr.
+ * @param[inout] free_percentage Pointer to a variable to receive the
+ *          percentages of the buffer that is free. Can be nullptr.
  * @return  See @ref funcreturns "Function return values".
  */
 NDIGO6G12_API int ndigo6g12_get_free_buffer(ndigo6g12_device *device, uint64_t *free_bytes, double *free_percentage);
